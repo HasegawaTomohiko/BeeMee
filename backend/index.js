@@ -4,8 +4,8 @@ const PORT = 4000;
 const beeRoute = require("./routes/bee");
 const beehiveRoute = require("./routes/beehive");
 const honeycombRoute = require("./routes/honeycomb");
+const honeycombReplyRoute = require("./routes/honeycombReply");
 const authRoute = require("./routes/auth");
-const mysql = require("mysql");
 const mongoose = require("mongoose");
 
 //dbConnect
