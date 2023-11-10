@@ -4,30 +4,19 @@ const PORT = 4000;
 const beeRoute = require("./routes/bee");
 const beehiveRoute = require("./routes/beehive");
 const honeycombRoute = require("./routes/honeycomb");
-const honeycombReplyRoute = require("./routes/honeycombReply");
 const authRoute = require("./routes/auth");
 const mongoose = require("mongoose");
+const { Sequelize } = require('sequelize');
 
 //dbConnect
-
-mongoose.connect("mongodb://localhost:27017/BeeMee",{
+const db = mongoose.connect("mongodb://root:yourpassword@beemee-mongo:27017/BeeMee?authSource=admin",{
     useNewUrlParser: true,
     useUnifiedTopology: true,
     family: 4
 });
-
-const db = mongoose.connection;
-
-db.on('connected', () => {
-    console.log("connected mongoDB!");
-});
-
-db.on('error', (err) => {
-    console.log(`Mongodb connection error: ${err}`);
-});
-
-db.on('disconnected', () => {
-    console.log("disconnected mongoDB!");
+const authDb = new Sequelize('BeeMee','root','yourpassword',{
+    host: 'beemee-mysql',
+    dialect: 'mysql'
 });
 
 //middle ware

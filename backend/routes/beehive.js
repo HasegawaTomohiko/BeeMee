@@ -32,7 +32,7 @@ router.get("/:beehiveid/joinedBee",beehiveController.getJoinedBee);
 
 //Bee本人のみがjoinedBeeに追加できる
 router.post("/:beehiveid/joinedBee/:beeid",beehiveController.addJoinedBee);
-m
+
 //Bee本人のみがjoinedBeeから削除できる
 router.delete("/:beehiveid/joinedBee/:beeid",beehiveController.removeJoinedBee);
 

@@ -1,5 +1,5 @@
 var router = require("express").Router();
-var beeAuthController = require("../controllers/authBeeController");s
+var beeAuthController = require("../controllers/authBeeController");
 
 router.get("/",(req,res) => {
   res.send("this is auth65!");

@@ -1,0 +1,97 @@
+# バージョンを指定
+version: "3"
+
+# サービスを定義
+services:
+  # フロントエンドのサービス
+  beemee-frontend:
+    # フロントエンドのDockerfileをビルド
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    # フロントエンドのコンテナ名をfrontendに設定
+    container_name: beemee-frontend
+    # フロントエンドのコンテナの3000番ポートをホストの3000番ポートにマッピング
+    ports:
+      - 3000:3000
+    # フロントエンドのコンテナがバックエンドのコンテナにアクセスできるようにネットワークを設定
+    networks:
+      - beemee-network
+    volumes:
+      - ./frontend:/app
+      - beemee-frontend-node-modules:/app/node_modules
+
+  # バックエンドのサービス
+  beemee-backend:
+    # バックエンドのDockerfileをビルド
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # バックエンドのコンテナ名をbackendに設定
+    container_name: beemee-backend
+    # バックエンドのコンテナの4000番ポートをホストの4000番ポートにマッピング
+    ports:
+      - 4000:4000
+    # バックエンドのコンテナがMongoDBとMySQLのコンテナにアクセスできるようにネットワークを設定
+    networks:
+      - beemee-network
+    # MongoDBとMySQLのコンテナが起動してからバックエンドのコンテナが起動するように依存関係を設定
+    depends_on:
+      - beemee-mongo
+      - beemee-mysql
+    volumes:
+      - ./backend:/app
+      - beemee-backend-node-modules:/app/node_modules
+
+  # MongoDBのサービス
+  beemee-mongo:
+    # イメージとしてmongo:latestを使用
+    image: mongo:latest
+    # MongoDBのコンテナ名をmongodbに設定
+    container_name: beemee-mongo
+    # MongoDBのコンテナの27017番ポートをホストの27017番ポートにマッピング
+    ports:
+      - 27017:27017
+    # MongoDBのコンテナがバックエンドのコンテナにアクセスできるようにネットワークを設定
+    networks:
+      - beemee-network
+    # MongoDBのデータを永続化するためにボリュームを設定
+    volumes:
+      - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
+      - beemee-mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    command: [mongod, --auth]
+  # MySQLのサービス
+  beemee-mysql:
+    # イメージとしてmysql:8.0を使用
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    # MySQLのコンテナ名をmysqlに設定
+    container_name: beemee-mysql
+    # MySQLのコンテナの3306番ポートをホストの3306番ポートにマッピング
+    ports:
+      - 3306:3306
+    # MySQLのコンテナがバックエンドのコンテナにアクセスできるようにネットワークを設定
+    networks:
+      - beemee-network
+    # MySQLのデータを永続化するためにボリュームを設定
+    volumes:
+      - beemee-mysql:/var/lib/mysql
+    # MySQLの環境変数を設定
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+
+# ネットワークを定義
+networks:
+  beemee-network:
+    driver: bridge
+
+# ボリュームを定義
+volumes:
+  beemee-mongo:
+  beemee-mysql:
+  beemee-backend-node-modules:
+  beemee-frontend-node-modules:

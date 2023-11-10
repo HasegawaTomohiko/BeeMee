@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const BeeSchema = new Schema({
-  beeId: { type: Schema.Types.ObjectId, ref: 'BeeAuth', required: true, max: 30, unique: true, },
+  beeId: { type: Schema.Types.ObjectId, required: true, max: 30, unique: true, },
   beeName : { type: String, max: 30 },
   description: { type: String, max: 160 },
   location: { type: String, max: 20 },
