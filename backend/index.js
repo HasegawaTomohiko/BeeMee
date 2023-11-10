@@ -21,6 +21,7 @@ const authDb = new Sequelize('BeeMee','root','yourpassword',{
 
 //middle ware
 
+server.use(express.json());
 server.use("/bee",beeRoute);
 server.use("/beehive",beehiveRoute);
 server.use("/honeycomb",honeycombRoute);
