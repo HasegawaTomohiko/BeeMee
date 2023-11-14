@@ -17,5 +17,5 @@ app.get("*", (req, res) => {
 
 // サーバーを起動
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`click : http://localhost:${port}/`);
 });

@@ -3,12 +3,12 @@ const Schema = mongoose.Schema;
 
 const BeeSchema = new Schema({
   beeId: { type: Schema.Types.ObjectId, required: true, max: 30, unique: true, },
-  beeName : { type: String, max: 30 },
-  description: { type: String, max: 160 },
-  location: { type: String, max: 20 },
-  customUrl: { type: String, max:50 },
-  profileIcon: { type: String },
-  profileHeader: { type: String },
+  beeName : { type: String, max: 30 , required: true},
+  description: { type: String, max: 300 },
+  location: { type: String },
+  customUrl: { type: String },
+  beeIcon: { type: String },
+  beeHeader: { type: String },
   follow: [{
     type: Schema.Types.ObjectId,
     ref: 'Bee',
@@ -33,6 +33,4 @@ const BeeSchema = new Schema({
   {timestamps: true}
 );
 
-const Bee = mongoose.model('Bee',BeeSchema);
-
-module.exports = Bee;
+module.exports = mongoose.model('Bee',BeeSchema);

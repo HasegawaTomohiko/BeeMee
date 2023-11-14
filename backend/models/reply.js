@@ -1,16 +1,17 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const HoneycombReplySchema = new Schema({
+const ReplySchema = new Schema({
   replyId: { type: String, unique: true },
   beeId: { type: Schema.Types.ObjectId, ref: 'Bee'},
   honeycombId: { type: Schema.Types.ObjectId, ref: 'Honeycomb'},
-  posts: { type: String, max: 500},
-  reply:[{ type: Schema.Types.ObjectId, ref:'HoneycombReply' }],
+  posts: { type: String, required: true, max: 500},
+  media: [{type:String}],
+  reply:[{ type: Schema.Types.ObjectId, ref:'Reply' }],
 },
   {timestamps : true}
 );
 
-const HoneycombReply = mongoose.model('HoneycombReply',HoneycombReplySchema);
+const Reply = mongoose.model('Reply',ReplySchema);
 
-module.exports = HoneycombReply;
+module.exports = Reply;

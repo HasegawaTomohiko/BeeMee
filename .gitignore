@@ -2,4 +2,4 @@
 /backend/devlop
 /frontend/node_modules
 /frontend/build
-/nginx-1.24.0
+.env

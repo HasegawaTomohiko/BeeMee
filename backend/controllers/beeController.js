@@ -1,25 +1,13 @@
+const bcrypt = require("bcrypt");
 const Bee = require("../models/bee");
+const BeeAuth = require("../models/beeAuth");
 
 exports.getBee = async (req,res) => {
-  const beeid = req.params.beeid;
-  res.send("get Bee! : " + beeid);
-  /* try{
-    const bee = await Bee.findById(req.params.beeid).select("beeid beeName description location customUrl profileHeader profileIcon");
 
-    if(!bee){
-      return res.status(404).json({ message: "Bee not found"});
-    }
-
-    res.status(200).json(bee);
-  } catch (error) {
-    console.error(err);
-    res.status(500).json({ message: "Internal Server Error"});
-  } */
 }
 
 exports.createBee = async (req,res) => {
-  const beeid = req.params.beeid;
-  res.send("create Bee! : " + beeid);
+  
 }
 
 exports.updateBee = async (req,res) => {
@@ -93,4 +81,8 @@ exports.addSendHoney = async (req,res) => {
 
 exports.removeSendHoney = async(req,res) => {
   
+}
+
+async function getBee (req,res,next) {
+
 }

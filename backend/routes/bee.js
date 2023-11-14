@@ -15,58 +15,41 @@ router.post("/",beeController.createBee);
 
 /* Session Only */
 //Update Bee info
-router.patch("/",beeController.updateBee);
+router.patch("/:beeid",beeController.updateBee);
 
 //Delete Bee
 /* Session Only */
-router.delete("/",beeController.deleteBee);
+router.delete("/:beeid",beeController.deleteBee);
 
 //Get Bee follow list
-router.get("/follow/:beeid",beeController.getFollow);
+router.get("/:beeid/follow",beeController.getFollow);
 
 /* Session Only */
 //Add follow Bee
-router.post("/follow/:followid",beeController.addFollow);
+router.patch("/:beeid/follow/:followid",beeController.addFollow);
 
 /* Session Only */
 //Delete follow Bee
-router.delete("/follow/:followid",beeController.removeFollow);
+router.delete("/:beeid/follow/:followid",beeController.removeFollow);
 
 //Get follower list
-router.get("/follower/:beeid",beeController.getFollower);
+router.get("/:beeid/follower",beeController.getFollower);
 
 //Get joined Beehive list
-router.get("/joinedBeehive/:beeid",beeController.getJoinedBeehive);
+router.get("/:beeid/joinedBeehive",beeController.getJoinedBeehive);
 
-/* Session Only */
-//Add Beehive was joined.
-router.post("/joinedBeehive/:beehiveid",beeController.addJoinedBeehive);
-
-/* Session Only */
-//Delete Beehive was joined.
-router.delete("/joinedBeehive/:beehiveid",beeController.removeJoinedBeehive);
-
-//Get SendHoney was sent
-router.get("/sendHoney/:beeid",beeController.getSendHoney);
-
-/* Session Only */
-//Add SendHoney was sent
-router.post("/sendHoney/:honeycombid",beeController.addSendHoney);
-
-/* Session Only */
-//Remove SendHoney
-router.delete("/sendHoney/:honeycombid",beeController.removeSendHoney);
+router.get("/:beeid/sendHoney",beeController.getSendHoney);
 
 /* Session Only */
 //Get block list
-router.get("/block",beeController.getBlock);
+router.get("/:beeid/block",beeController.getBlock);
 
 /* Session Only */
 //Add block Bee
-router.post("/block/:blockid",beeController.addBlock);
+router.patch("/:beeid/block/:blockid",beeController.addBlock);
 
 /* Session Only */
 //Delete block Bee
-router.delete("/block/:blockid",beeController.removeBlock);
+router.delete("/:beeid/block/:blockid",beeController.removeBlock);
 
 module.exports = router;

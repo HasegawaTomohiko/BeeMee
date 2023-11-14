@@ -1,14 +1,28 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
 
-const BeeAuthSchema = new Schema({
-  beeId: { type: String, max: 30, unique: true},
-  password: { type: String, max: 100 },
-  salt: { type: String, max: 100 },
-  email: { type: String, max:50 }
+const { Sequelize, DataTypes} = require('requelize');
+const sequelize = new Sequelize('BeeMee','root','yourpassword',{
+  host: 'beemee-mysql',
+  dialect: 'mysql'
 });
 
-const BeeAuth = mongoose.model("BeeAuth",BeeAuthSchema);
+const BeeAuth = sequelize.define('BeeAuth', {
+  beeID: {
+    type: DataTypes.STRING(30),
+    primaryKey: true
+  },
+  email: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    unique: true
+  },
+  password: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  salt: {
+    type: DataTypes.STRING(20),
+    allowNull: false
+  }
+},{});
 
 module.exports = BeeAuth;
-

@@ -11,9 +11,9 @@ router.get("/",(req,res) => {
 
 router.post("/register",beeAuthController.registerBee);
 
-router.post("/login", beeAuthController.authBee);
+router.post("/session", beeAuthController.authBee);
 
-router.post("/logout",beeAuthController.logoutBee);
+router.delete("/session",beeAuthController.logoutBee);
 
 //認証されているユーザ本人のみが行えるようにする。(勝手に削除されないようにする)
 router.post("/deleteBee",beeAuthController.deleteBee);

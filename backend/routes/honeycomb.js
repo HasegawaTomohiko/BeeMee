@@ -1,20 +1,29 @@
 var router = require("express").Router();
 var honeycombController = require("../controllers/honeycombController");
-var honeycombReplyController = require("../controllers/honeycombReplyController");
+var honeycombReplyController = require("../controllers/replyController");
 
 // router.get("/",(req,res) => {
 //   res.send("this is honeycomb!");
 // });
 
+//Honeycombの情報の取得
 router.get("/:honeycombid",honeycombController.getHoneycomb);
 
+//新規Honeycombの作成
 router.post("/",honeycombController.createHoneycomb);
 
-router.delete("/",honeycombController.deleteHoneycomb);
+//Honeycombの編集(作成者本人のみ)
+router.patch("/:honeycombid",honeycombController.editHoneycomb);
 
-router.get("/honey/:honeycombid",honeycombController.getHoney);
+//Honeycombの削除(作成者本人のみ)
+router.delete("/:honeycombid",honeycombController.deleteHoneycomb);
 
-router.post("/honey/:honeycombid",honeycombController.addHoney);
+//HoneycombのHoneyリストを取得
+router.get("/:honeycombid/honey",honeycombController.getHoney);
 
-router.delete("/honey/:honeycombid",honeycombController.removeHoney);
+//HoneycombにHoneyを追加(自分のIDが存在しない場合のみ)
+router.patch("/:honeycombid/honey",honeycombController.addHoney);
+
+//HoneycombのHoneyを削除(自分のIDが存在する場合のみ)
+router.delete("/:honeycombid/honey",honeycombController.removeHoney);
 module.exports = router;
