@@ -42,6 +42,7 @@ services:
     volumes:
       - ./backend:/app
       - beemee-backend-node-modules:/app/node_modules
+      - beemee-media:/app/media
 
   # MongoDBのサービス
   beemee-mongo:
@@ -95,3 +96,4 @@ volumes:
   beemee-mysql:
   beemee-backend-node-modules:
   beemee-frontend-node-modules:
+  beemee-media:

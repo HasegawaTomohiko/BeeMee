@@ -1,13 +1,61 @@
 const bcrypt = require("bcrypt");
+const multer = require("multer");
+const uuid = require("uuid").v4;
 const Bee = require("../models/bee");
 const BeeAuth = require("../models/beeAuth");
 
-exports.getBee = async (req,res) => {
+const storage = multer.diskStorage({
+  destination : (req, file, cb) => {
+    cb(null, '/app/media');
+  },
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split('/')[1];
+    if (ext !== 'jpg' && ext !== 'png') {
+      return cb(new Error('Only jpg and png are allowed'));
+    }
+    cb(null, `${uuid()}.${ext}`);
+  },
+});
 
+const upload = multer({ storage });
+
+exports.getBee = async (req,res) => {
+  try {
+    const bee = await Bee.findOne({beeId: req.params.beeId});
+    if(!bee) return res.status(404).json({ error : 'Bee not found'});
+    res.status(204).json(bee);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error : 'Internal Server Error '});
+  }
 }
 
 exports.createBee = async (req,res) => {
-  
+  res.json({ hello : "hello!!!"});
+  // await upload.single('iconFile');
+  // try {
+  //   const { beeid, email, password, beeName } = req.body;
+  //   const salt = bcrypt.genSaltSync(10);
+  //   const hashedPassword = bcrypt.hashSync(password, salt);
+
+  //   const beeAuth = await BeeAuth.create({
+  //     beeId: beeid,
+  //     email,
+  //     password: hashedPassword,
+  //     salt,
+  //   });
+
+  //   const bee = await Bee.create({
+  //     beeid,
+  //     beeName,
+  //     beeIcon: `${req,file.filename}`,
+  //   });
+
+  //   res.status(201).json({beeAuth,bee});
+  // } catch (error) {
+  //   console.error(error);
+  //   res.status(500);
+  // }
 }
 
 exports.updateBee = async (req,res) => {

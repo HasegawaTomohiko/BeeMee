@@ -7,6 +7,7 @@ const session = require("express-session");
 const body = require("body-parser");
 const multer = require("multer");
 const { v4:uuidv4 } = require('uuid');
+require('dotenv').config();
 
 //router
 const beeRoute = require("./routes/bee");
@@ -28,12 +29,13 @@ const storage = multer.diskStorage({
 const upload = multer({storage: storage});
 
 //Database Connect
-const db = mongoose.connect("mongodb://root:yourpassword@beemee-mongo:27017/BeeMee?authSource=admin",{
+const db = mongoose.connect(`mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@beemee-mongo:27017/BeeMee?authSource=admin`,{
     useNewUrlParser: true,
     useUnifiedTopology: true,
     family: 4
 });
-const authDb = new Sequelize('BeeMee','root','yourpassword',{
+
+const authDb = new Sequelize('BeeMee','root',process.env.MYSQL_ROOT_PASSWORD,{
     host: 'beemee-mysql',
     dialect: 'mysql'
 });
