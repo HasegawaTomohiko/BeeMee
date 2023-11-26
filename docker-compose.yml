@@ -47,7 +47,9 @@ services:
   # MongoDBのサービス
   beemee-mongo:
     # イメージとしてmongo:latestを使用
-    image: mongo:latest
+    build:
+      context: ./mongo
+      dockerfile: Dockerfile
     # MongoDBのコンテナ名をmongodbに設定
     container_name: beemee-mongo
     # MongoDBのコンテナの27017番ポートをホストの27017番ポートにマッピング
@@ -63,7 +65,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-    command: [mongod, --auth]
+    command: mongod --auth
+
   # MySQLのサービス
   beemee-mysql:
     # イメージとしてmysql:8.0を使用

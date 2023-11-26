@@ -1,28 +1,30 @@
 
-const { Sequelize, DataTypes} = require('requelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = new Sequelize('BeeMee','root','yourpassword',{
   host: 'beemee-mysql',
   dialect: 'mysql'
 });
 
 const BeeAuth = sequelize.define('BeeAuth', {
-  beeID: {
+  beeId: {
     type: DataTypes.STRING(30),
     primaryKey: true
   },
   email: {
     type: DataTypes.STRING(50),
     allowNull: false,
-    unique: true
   },
   password: {
     type: DataTypes.STRING(100),
     allowNull: false,
   },
   salt: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.STRING(100),
     allowNull: false
   }
-},{});
+},{
+  timestamps: false,
+  tableName: "BeeAuth"
+});
 
 module.exports = BeeAuth;

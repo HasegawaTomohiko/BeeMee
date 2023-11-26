@@ -7,7 +7,7 @@ router.get("/",(req,res) => {
 });
 
 //Get Bee info
-router.get("/:beeid",beeController.getBee);
+router.get("/:beeId",beeController.getBee);
 
 /* Session Only */
 //Create Bee info (Register)

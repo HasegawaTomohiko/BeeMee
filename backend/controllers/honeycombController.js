@@ -2,6 +2,7 @@ const Honeycomb = require("../models/honeycomb");
 
 exports.getHoneycomb = async (req,res) => {}
 exports.createHoneycomb = async (req,res) => {}
+exports.editHoneycomb = async (req,res) => {}
 exports.deleteHoneycomb = async (req,res) => {}
 exports.getHoney = async (req,res) => {}
 exports.addHoney = async (req,res) => {}

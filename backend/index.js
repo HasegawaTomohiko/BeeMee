@@ -2,9 +2,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { Sequelize } = require('sequelize');
-const cookie = require("cookie-parser");
 const session = require("express-session");
 const body = require("body-parser");
+//const cookie = require("cookie-parser");
 const multer = require("multer");
 const { v4:uuidv4 } = require('uuid');
 require('dotenv').config();
@@ -18,15 +18,6 @@ const authRoute = require("./routes/auth");
 //server setting
 const server = express();
 const PORT = 4000;
-const storage = multer.diskStorage({
-    destination : (req,file,cb) => {
-        cb(null, './public/');
-    },
-    filename: (req,file,cb) => {
-        cb(null, uuidv4() + path.extname(file.originalname))
-    }
-});
-const upload = multer({storage: storage});
 
 //Database Connect
 const db = mongoose.connect(`mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@beemee-mongo:27017/BeeMee?authSource=admin`,{
@@ -52,7 +43,7 @@ server.use(session({
         maxage: 7 * 24 * 60 * 60 * 1000
     }
 }));
-server.use(cookie());
+//server.use(cookie());
 server.use(body.urlencoded({extended: false}));
 server.use("/bee",beeRoute);
 server.use("/beehive",beehiveRoute);

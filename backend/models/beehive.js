@@ -7,9 +7,11 @@ const BeehiveSchema = new Schema({
   description: { type:String, max:500},
   beehiveIcon: { type:String },
   beehiveHeader: { type:String },
-  queenBee: [{ type:Schema.Types.ObjectId, ref:'Bee'}],
-  joinedBee: [{ type:Schema.Types.ObjectId, ref:'Bee'}],
-  blockBee: [{type:Schema.Types.ObjectId, ref:'Bee'}]
+  queenBee: [{ type:Schema.Types.ObjectId, ref:'Bees'}],
+  joinedBee: [{ type:Schema.Types.ObjectId, ref:'Bees'}],
+  blockBee: [{type:Schema.Types.ObjectId, ref:'Bees'}]
+},{
+  timestamps: true,
 });
 
-module.exports = mongoose.model('Beehive',BeehiveSchema);
+module.exports = mongoose.model('Beehives',BeehiveSchema);

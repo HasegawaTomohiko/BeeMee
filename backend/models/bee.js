@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const BeeSchema = new Schema({
-  beeId: { type: Schema.Types.ObjectId, required: true, max: 30, unique: true, },
+  beeId: { type: String, required: true, max: 30, unique: true, },
   beeName : { type: String, max: 30 , required: true},
   description: { type: String, max: 300 },
   location: { type: String },
@@ -11,26 +11,26 @@ const BeeSchema = new Schema({
   beeHeader: { type: String },
   follow: [{
     type: Schema.Types.ObjectId,
-    ref: 'Bee',
+    ref: 'Bees',
   }],
   follower: [{
     type: Schema.Types.ObjectId,
-    ref: 'Bee',
+    ref: 'Bees',
   }],
   joinBeehive: [{
     type: Schema.Types.ObjectId,
-    ref: 'Beehive',
+    ref: 'Beehives',
   }],
   sendHoney: [{
     type: Schema.Types.ObjectId,
-    ref: 'Honeycomb',
+    ref: 'Honeycombs',
   }],
   block: [{
     type: Schema.Types.ObjectId,
-    ref: 'Bee',
+    ref: 'Bees',
   }]
 },
-  {timestamps: true}
+  {timestamps: false}
 );
 
-module.exports = mongoose.model('Bee',BeeSchema);
+module.exports = mongoose.model('Bees',BeeSchema);
