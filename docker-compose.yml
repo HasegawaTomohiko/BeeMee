@@ -62,6 +62,7 @@ services:
     volumes:
       - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
       - beemee-mongo:/data/db
+      - beemee-mongo-config:/data/configdb
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -96,6 +97,7 @@ networks:
 # ボリュームを定義
 volumes:
   beemee-mongo:
+  beemee-mongo-config:
   beemee-mysql:
   beemee-backend-node-modules:
   beemee-frontend-node-modules:
