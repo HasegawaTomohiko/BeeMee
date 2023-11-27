@@ -1,55 +1,41 @@
 var router = require("express").Router();
 var beeController = require("../controllers/beeController");
 
-//test response
-router.get("/",(req,res) => {
-  res.send("this is bee!");
-});
+//Create Bee info (Register)
+router.post("/",beeController.createBee);
 
 //Get Bee info
 router.get("/:beeId",beeController.getBee);
 
 /* Session Only */
-//Create Bee info (Register)
-router.post("/",beeController.createBee);
-
-/* Session Only */
 //Update Bee info
-router.patch("/:beeid",beeController.updateBee);
+router.patch("/:beeId",beeController.updateBee);
 
 //Delete Bee
 /* Session Only */
-router.delete("/:beeid",beeController.deleteBee);
+router.delete("/:beeId",beeController.deleteBee);
 
 //Get Bee follow list
-router.get("/:beeid/follow",beeController.getFollow);
+router.get("/follow/:beeId",beeController.getFollow);
 
 /* Session Only */
 //Add follow Bee
-router.patch("/:beeid/follow/:followid",beeController.addFollow);
-
-/* Session Only */
-//Delete follow Bee
-router.delete("/:beeid/follow/:followid",beeController.removeFollow);
+router.patch("/follow/:followId",beeController.updateFollow);
 
 //Get follower list
-router.get("/:beeid/follower",beeController.getFollower);
+router.get("/follower/:beeId",beeController.getFollower);
 
 //Get joined Beehive list
-router.get("/:beeid/joinedBeehive",beeController.getJoinedBeehive);
+router.get("/joinedBeehive/:beeId",beeController.getJoinBeehive);
 
-router.get("/:beeid/sendHoney",beeController.getSendHoney);
+router.get("/sendHoney/:beeId",beeController.getSendHoney);
 
 /* Session Only */
 //Get block list
-router.get("/:beeid/block",beeController.getBlock);
+router.get("/block",beeController.getBlock);
 
 /* Session Only */
 //Add block Bee
-router.patch("/:beeid/block/:blockid",beeController.addBlock);
-
-/* Session Only */
-//Delete block Bee
-router.delete("/:beeid/block/:blockid",beeController.removeBlock);
+router.patch("/block/:blockId",beeController.updateBlock);
 
 module.exports = router;

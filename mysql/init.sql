@@ -5,6 +5,5 @@ Use BeeMee;
 CREATE TABLE IF NOT EXISTS BeeAuth (
     beeId VARCHAR(30) PRIMARY KEY,
     email VARCHAR(50) NOT NULL,
-    password VARCHAR(100) NOT NULL,
-    salt VARCHAR(100) NOT NULL
+    password VARCHAR(100) NOT NULL
 );

@@ -27,7 +27,22 @@ exports.getBee = async (req,res) => {
   try {
     const bee = await Bees.findOne({beeId: req.params.beeId});
     if (!bee) return res.status(404).json({ error : 'Bee not found'});
-    res.status(200).json(bee);
+
+    const result = {
+      beeId : bee.beeId,
+      beeName : bee.beeName,
+      description : bee.description,
+      location : bee.location,
+      customurl : bee.customUrl,
+      beeIcon : bee.beeIcon,
+      beeHeader : bee.beeHeader,
+      follow : bee.follow.length,
+      follower : bee.follower.length,
+      joinBeehive : bee.joinBeehive.length,
+      sendHoney : bee.sendHoney.length,
+    }
+
+    res.status(200).json(result);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error : 'Internal Server Error '});
@@ -49,47 +64,113 @@ exports.createBee = async (req,res) => {
     }
 
     try {
+
+      //入力情報
       const beeId = req.body.beeId;
       const email = req.body.email;
       const password = req.body.password;
       const beeName = req.body.beeName;
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
 
-      //await beeAuth.sync({ force: true });
+      //ハッシュ化処理
+      const hashedPassword = bcrypt.hashSync(password, 10);
 
+      //競合処理
       const duplicateBee = await Bees.findOne({beeId:beeId});
-      if(duplicateBee) return res.status(400).json({error:'BeeId already exists'});
+      if(duplicateBee) return res.status(400).json({ error:'BeeId already exists' });
   
       const beeAuth = BeeAuth.build({
         beeId: beeId,
         email: email,
-        password: hashedPassword,
-        salt: salt,
+        password: hashedPassword
       }); 
-     await beeAuth.save();
 
-     const beeIconName = `${uuid()}.${req.files.beeIcon[0].mimetype.split('/')[1]}`;
-     const beeHeaderName = `${req.files.beeHeader[0].mimetype.split('/')[1]}`;
-  
-      //ファイル保存処理
-      const beeIconPath = path.join('/app/media',beeIconName);
-      const beeHeaderPath = path.join('/app/media',beeIconName);
-      fs.renameSync(req.files.beeIcon[0].path,beeIconPath);
-      fs.renameSync(req.files.beeHeader[0].path,beeHeaderPath);
-  
+      await beeAuth.save();
+
+      //ファイルが存在していれば、ファイル名を変更して保存させる。
+      let beeIconName;
+      let beeHeaderName;
+      if (req.files.beeIcon && req.files.beeIcon.length > 0){
+        beeIconName = `${uuid()}.${req.files.beeIcon[0].mimetype.split('/')[1]}`;
+        const beeIconPath = path.join('/app/media',beeIconName);
+        fs.promises.rename(req.files.beeIcon[0].path, beeIconPath);
+      }
+      if (req.files.beeHeader && req.files.beeHeader.length > 0) {
+        beeHeaderName = `${req.files.beeHeader[0].mimetype.split('/')[1]}`;
+        const beeHeaderPath = path.join('/app/media',beeHeaderName);
+        fs.promises.rename(req.files.beeIcon[0].path, beeHeaderPath);
+      }
+
       const bee = new Bees({
         beeId: beeId,
         beeName: beeName,
-        beeIcon: beeIconName,
-        beeHeader: beeHeaderName
+        beeIcon: beeIconName || '',
+        beeHeader: beeHeaderName || '',
+      });
+      await bee.save();
+
+      res.status(201).json({beeAuth,bee});
+
+    } catch (error) {
+      console.error(error);
+      res.status(500);
+    }
+  });
+}
+
+/**
+ * ユーザ情報更新処理
+ * @param {*} req 
+ * @param {*} res 
+ */
+exports.updateBee = async (req,res) => {
+
+  if (!req.session.beeId) return res.status(500).json({ error : 'セッションIDが存在しません'});
+  upload.fields([{name: 'beeIcon',maxCount : 1}, {name:'beeHeader',maxCount:1}])(req,res, async function (err){
+
+    if(err) {
+      console.error(err);
+      return res.status(500);
+    }
+
+    try {
+      const beeId = req.session.beeId;
+      const beeName = req.body.beeName;
+      const location = req.body.location;
+      const description = req.body.description;
+      const customUrl = req.body.customUrl;
+
+      let beeIconName;
+      let beeHeaderName;
+
+      //ファイルが存在していればファイル名を変更して保存させる。
+      if (req.files.beeIcon && req.files.beeIcon.length > 0) {
+        beeIconName = `${uuid()}.${req.files.beeIcon[0].mimetype.split('/')[1]}`;
+        const beeIconPath = path.join('/app/media',beeIconName);
+        fs.renameSync(req.files.beeIcon[0].path, beeIconPath);
+      }
+      if (req.files.beeHeader && req.files.beeHeader.length > 0) {
+        beeHeaderName = `${req.files.beeHeader[0].mimetype.split('/')[1]}`;
+        const beeHeaderPath = path.join('/app/media',beeHeaderName);
+        fs.renameSync(req.files.beeIcon[0].path, beeHeaderPath);
+      }
+
+      //一旦前の情報を取得する
+      const beforeBee = await Bees.findOne({beeId : beeId});
+
+      await Bees.updateMany({
+        beeName: beeName,
+        location: location,
+        description: description,
+        customUrl: customUrl,
+        beeIcon: beeIconName || beforeBee.beeIcon,
+        beeHeader: beeHeaderName || beforeBee.beeHeader,
+      },{
+        where: { beeId : beeId }
       });
 
-      await bee.save();
+      const updateBee = await Bees.findOne({ beeId : beeId });
   
-      //もし完了出来たら、ここでbeeIconとbeeHeaderのファイルを/app/mediaに保存。
-  
-      res.status(201).json({beeAuth,bee});
+      res.status(201).json({updateBee});
     } catch (error) {
       console.error(error);
       res.status(500);
@@ -98,78 +179,187 @@ exports.createBee = async (req,res) => {
   });
 }
 
-exports.updateBee = async (req,res) => {
-  const beeid = req.params.beeid;
-  res.send("update Bee! : " + beeid);
-}
-
 exports.deleteBee = async (req,res) => {
   const beeid = req.params.beeid;
   res.send("delete Bee! : " + beeid);
 }
 
 exports.getFollow = async (req,res) => {
-  const beeid = req.params.beeid;
-  res.send("show follow list ! : " + beeid);
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    const skip = (page - 1) * limit;
+    const beeId = req.params.beeId;
+    const bee = await Bees.findOne({ beeId : beeId}).populate({
+      path: 'follow',
+      select: 'beeId beeName description beeIcon',
+      options : { skip : skip, limit : limit },
+    });
+
+    if(!bee) return res.status(404).json({ error : 'Bee not found' });
+
+    res.json(bee.follow);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error : 'Internal Server Error '});
+  }
 }
 
-exports.addFollow = async (req,res) => {
-  const followid = req.params.follwoid;
-  const beeid = req.params.beeid;
-  res.send("add follow " + followid + " by " + beeid);
+/**
+ * フォロー変更処理(未検収)
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
+exports.updateFollow = async (req,res) => {
+  if(!req.session.beeId) return res.status(404).json({ error : 'セッションIDが存在していません' });
+
+  try {
+    const beeId = req.session.beeId;
+    const followId = req.params.followId;
+
+    const sessionBee = await Bees.findOne({beeId : beeId});
+    if(!sessionBee) return res.status(404).json({ error : 'Session Bee Not Found' });
+
+    const followBee = await Bees.findOne({ beeId : followId});
+    if(!followBee) return res.status(404).json({ error : 'Follow Bee Not Found' });
+
+    if (!sessionBee.follow.includes(followId)) {
+      sessionBee.follow.push(followId);
+    } else {
+      const indexBee = sessionBee.follow.indexOf(followId);
+      sessionBee.follow.splice(indexBee, 1);
+    }
+    await sessionBee.save();
+
+    if(!followBee.follower.includes(beeId)){
+      followBee.follower.push(beeId);
+    } else {
+      const indexFollow = followBee.follower.indexOf(beeId);
+      followBee.follower.splice(indexFollow,1);
+    }
+    await followBee.save();
+
+    res.status(200).json({ message : 'follow changing success' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({error : 'Internal Server Error'});
+  }
 }
 
-exports.removeFollow = async (req,res) => {
-  const followid = req.params.followid;
-  const beeid = req.params.beeid;
-  res.send("remove follow" + followid + " by " + beeid);
-}
 
 exports.getFollower = async (req,res) => {
-  const beeid = req.params.beeid;
-  res.send("get follower! : " + beeid);
+  try{
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    const skip = (page - 1) * limit;
+    const beeId = req.params.beeId;
+
+    const bee = await Bees.findOne({ beeId : beeId }).populate({
+      path : 'follower',
+      selsct : 'beeId beeName description beeIcon',
+      options : { skip : skip, limit : limit },
+    });
+
+    if(!bee) return res.status(404).json({ error : 'Bee Not Found' });
+
+    res.status(200).json(bee.follow);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error : 'Internal Server Error' });
+  }
 }
 
-exports.getJoinedBeehive = async (req,res) => {
-  const beeid = req.params.beeid;
-  res.send("get beehive list! : " + beeid);
-}
+exports.getJoinBeehive = async (req,res) => {
+  try{
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    const skip = (page - 1) * limit;
+    const beeId = req.params.beeId;
 
-exports.addJoinedBeehive = async (req,res) => {
-  const beeid = req.params.beeid;
-  const beehiveid = req.params.beehiveid;
-  res.send("add beehive " + beehiveid + " by " + beeid);
-}
+    const bee = await Bees.findOne({ beeId : beeId }).populate({
+      path : 'joinBeehive',
+      options : { skip : skip, limit : limit }
+    });
 
-exports.removeJoinedBeehive = async(req,res) => {
-  const beeid = req.params.beeid;
-  const beehiveid = req.params.beehiveid;
-  res.send("remove beehive " + beehiveid + " by " + beeid);
-}
-
-exports.getBlock = async (req,res) => {
-
-}
-
-exports.addBlock = async (req,res) => {
-
-}
-
-exports.removeBlock = async (req,res) => {
-
+    if (!bee) return res.status(404).json({ error : 'Bee Not Found' });
+    res.status(200).json(bee.joinBeehive);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error : 'Internal Server Error' });
+  }
 }
 
 exports.getSendHoney = async (req,res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    const skip = (page - 1) * limit;
+    const beeId = req.params.beeId;
 
+    const bee = await Bees.findOne({ beeId : beeId }).populate({
+      path : 'sendHoney',
+      options : { skip : skip, limit : limit },
+    });
+
+    if (!bee) return res.status(404).json({ error : 'Bee Not Found' });
+
+    res.status(200).json(bee.sendHoney);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error : 'Internal Server Error' });
+  }
 }
 
-exports.addSendHoney = async (req,res) => {
+exports.getBlock = async (req,res) => {
+  if (!req.sessionId) return res.status(404).json({ error : 'セッションIDが存在していません' });
 
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    const skip = (page - 1) * limit;
+    const beeId = req.session.beeId;
+
+    const bee = await Bees.findOne({ beeId : beeId }).populate({
+      path : 'block',
+      options : { skip : skip, limit : limit }
+    });
+
+    if (!bee) return res.status(404).json({ error : 'Bee Not Found'});
+
+    res.status(200).json(bee.sendHoney);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error : 'Internal Server Error' });
+  }
 }
 
-exports.removeSendHoney = async(req,res) => {
-  
+exports.updateBlock = async (req,res) => {
+  if (!req.sessionId) return res.status(404).json({ error : 'セッションIDが存在していません' });
+
+  try {
+    const beeId = req.session.beeId;
+    const blockId = req.params.blockId;
+
+    const bee = await Bees.findOne({beeId : beeId});
+    const blockBee = await Bees.findOne({beeId : beeId});
+
+    if(!bee || !blockBee) return res.status(404).json({ error : 'Bee Not Found', bee : (bee ? true : false), block : (blockBee ? true : false)});
+
+    if(!bee.block.includes(blockId)) {
+      bee.block.push(blockId);
+    }else{
+      const blockIndex = bee.block.indexOf(blockId);
+      bee.block.splice(blockIndex,1);
+    }
+
+    await bee.save();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({error : 'Internal Server Error'});
+  }
 }
+
 
 async function getBee (req,res,next) {
 

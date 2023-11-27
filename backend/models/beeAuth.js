@@ -17,10 +17,6 @@ const BeeAuth = sequelize.define('BeeAuth', {
   password: {
     type: DataTypes.STRING(100),
     allowNull: false,
-  },
-  salt: {
-    type: DataTypes.STRING(100),
-    allowNull: false
   }
 },{
   timestamps: false,

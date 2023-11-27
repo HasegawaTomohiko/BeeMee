@@ -1,4 +1,7 @@
+const bcrypt = require("bcrypt");
+const uuid = require('uuid').v4;
 const BeeAuth = require("../models/beeAuth");
+const session = require("express-session");
 
 exports.checkDuplicateBee = async (req,res) => {
   //次へボタンを押したときに発動する
@@ -24,14 +27,36 @@ exports.checkDuplicateBee = async (req,res) => {
 }
 
 exports.authBee = async (req,res) => {
-  //もしハッシュ化させたパスワードと入力したパスワードのハッシュ値が一緒なら
-  //sessionのbeeidにBeeAuth.beeidを保存200
+  try {
+    const beeId = req.body.beeId;
+    const password = req.body.password;
 
-  //違う場合は409errorでもう一度ログインさせる
+    console.log(beeId + ' ' +  password);
+
+    const authBee = await BeeAuth.findOne({ where : { beeId : beeId }});
+    if(!authBee) return res.status(404).json({error : 'Bee Not Found', beeId : false, password : false});
+
+    const match = await bcrypt.compare(password, authBee.password);
+    if (!match) return res.status(401).json({ error : 'Incorrect password', beeId : true, password : false});
+
+    req.sessionId = uuid();
+    req.session.beeId = beeId;
+    res.status(200).json({ message : 'Auth success', sessionId : req.sessionId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error : 'Internal Server Error' });
+  }
 }
 
 exports.logoutBee = async (req,res) => {
-
+  if (!req.session.beeId) return res.status(500).json({ error : 'You dont have Session' });
+  req.session.destroy((err) => {
+    if(err){
+      console.error(err);
+      return res.status(500).json({ error : 'Internal Server Error' });
+    }
+    res.status(200).json({ message : 'Logout Success'});
+  });
 }
 
 exports.deleteBee = async (req,res) => {
