@@ -12,6 +12,4 @@ const ReplySchema = new Schema({
   {timestamps : true}
 );
 
-const Reply = mongoose.model('Replys',ReplySchema);
-
-module.exports = Reply;
+module.exports = mongoose.model('Replys',ReplySchema);

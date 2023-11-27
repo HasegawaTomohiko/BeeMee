@@ -1,41 +1,63 @@
 var router = require("express").Router();
 var beeController = require("../controllers/beeController");
 
-//Create Bee info (Register)
+/**
+ * Bee情報取得処理
+ */
 router.post("/",beeController.createBee);
 
-//Get Bee info
+/**
+ * Bee情報更新処理
+ * SessionIdが存在する場合のみ有効
+ */
+router.patch("/",beeController.updateBee);
+
+/**
+ * Bee情報削除処理
+ * SessionIdが存在してフロント側で二度の確認が取れた場合のみ有効
+ */
+router.delete("/",beeController.deleteBee);
+
+/**
+ * ユーザ情報取得処理
+ */
 router.get("/:beeId",beeController.getBee);
 
-/* Session Only */
-//Update Bee info
-router.patch("/:beeId",beeController.updateBee);
+/**
+ * フォローリスト取得
+ */
+router.get("/:beeId/follow",beeController.getFollow);
 
-//Delete Bee
-/* Session Only */
-router.delete("/:beeId",beeController.deleteBee);
-
-//Get Bee follow list
-router.get("/follow/:beeId",beeController.getFollow);
-
-/* Session Only */
-//Add follow Bee
+/**
+ * フォローリスト更新(追加、削除)
+ */
 router.patch("/follow/:followId",beeController.updateFollow);
 
-//Get follower list
-router.get("/follower/:beeId",beeController.getFollower);
+/**
+ * フォロワーリスト取得
+ */
+router.get("/:beeId/follower",beeController.getFollower);
 
-//Get joined Beehive list
-router.get("/joinedBeehive/:beeId",beeController.getJoinBeehive);
+/**
+ * 参加Beehive取得
+ */
+router.get("/:beeId/joinedBeehive",beeController.getJoinBeehive);
 
-router.get("/sendHoney/:beeId",beeController.getSendHoney);
+/**
+ * Honeyを送ったリスト取得
+ */
+router.get("/:beeId/sendHoney",beeController.getSendHoney);
 
-/* Session Only */
-//Get block list
+/**
+ * ブロックリスト取得
+ * SessionIdが存在する場合のみ有効
+ */
 router.get("/block",beeController.getBlock);
 
-/* Session Only */
-//Add block Bee
+/**
+ * ブロックリスト更新(追加、削除)
+ * SessionIdが存在する場合のみ有効
+ */
 router.patch("/block/:blockId",beeController.updateBlock);
 
 module.exports = router;

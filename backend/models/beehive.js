@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const BeehiveSchema = new Schema({
-  beehiveid: { type:String, unique:true, required:true, max: 30},
+  beehiveId: { type:String, unique:true, required:true, max: 30},
   beehiveName: { type:String, max:50, required: true},
   description: { type:String, max:500},
   beehiveIcon: { type:String },

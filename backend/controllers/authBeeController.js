@@ -3,12 +3,9 @@ const uuid = require('uuid').v4;
 const BeeAuth = require("../models/beeAuth");
 const session = require("express-session");
 
+
+//良くない
 exports.checkDuplicateBee = async (req,res) => {
-  //次へボタンを押したときに発動する
-  //入力したbeeidが他のbeeidと重複する場合(selectで検索を掛けたときにヒットした場合)は
-  //false409
-  //違う場合(重複がない場合)
-  //true200
 
   const bodyInfo = req.body.info;
 
@@ -30,8 +27,6 @@ exports.authBee = async (req,res) => {
   try {
     const beeId = req.body.beeId;
     const password = req.body.password;
-
-    console.log(beeId + ' ' +  password);
 
     const authBee = await BeeAuth.findOne({ where : { beeId : beeId }});
     if(!authBee) return res.status(404).json({error : 'Bee Not Found', beeId : false, password : false});
@@ -57,8 +52,4 @@ exports.logoutBee = async (req,res) => {
     }
     res.status(200).json({ message : 'Logout Success'});
   });
-}
-
-exports.deleteBee = async (req,res) => {
-  
 }

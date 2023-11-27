@@ -1,7 +1,5 @@
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
 const uuid = require("uuid").v4;
 const Bees = require("../models/bee");
 const BeeAuth = require("../models/beeAuth");
@@ -40,7 +38,7 @@ exports.getBee = async (req,res) => {
       follower : bee.follower.length,
       joinBeehive : bee.joinBeehive.length,
       sendHoney : bee.sendHoney.length,
-    }
+    };
 
     res.status(200).json(result);
   } catch (error) {
@@ -59,8 +57,8 @@ exports.createBee = async (req,res) => {
   upload.fields([{name: 'beeIcon',maxCount : 1}, {name:'beeHeader',maxCount:1}])(req,res, async function (err){
 
     if(err) {
-      console.error(err);
-      return res.status(500);
+		console.error(err);
+		return res.status(500);
     }
 
     try {
@@ -89,15 +87,12 @@ exports.createBee = async (req,res) => {
       //ファイルが存在していれば、ファイル名を変更して保存させる。
       let beeIconName;
       let beeHeaderName;
+
       if (req.files.beeIcon && req.files.beeIcon.length > 0){
-        beeIconName = `${uuid()}.${req.files.beeIcon[0].mimetype.split('/')[1]}`;
-        const beeIconPath = path.join('/app/media',beeIconName);
-        fs.promises.rename(req.files.beeIcon[0].path, beeIconPath);
+        beeIconName = req.files.beeIcon[0].filename;
       }
       if (req.files.beeHeader && req.files.beeHeader.length > 0) {
-        beeHeaderName = `${req.files.beeHeader[0].mimetype.split('/')[1]}`;
-        const beeHeaderPath = path.join('/app/media',beeHeaderName);
-        fs.promises.rename(req.files.beeIcon[0].path, beeHeaderPath);
+        beeHeaderName = req.files.beeHeader[0].filename;
       }
 
       const bee = new Bees({
@@ -129,7 +124,7 @@ exports.updateBee = async (req,res) => {
 
     if(err) {
       console.error(err);
-      return res.status(500);
+      return res.status(500).json({ error : ' cant upload Bee'});
     }
 
     try {
@@ -143,16 +138,8 @@ exports.updateBee = async (req,res) => {
       let beeHeaderName;
 
       //ファイルが存在していればファイル名を変更して保存させる。
-      if (req.files.beeIcon && req.files.beeIcon.length > 0) {
-        beeIconName = `${uuid()}.${req.files.beeIcon[0].mimetype.split('/')[1]}`;
-        const beeIconPath = path.join('/app/media',beeIconName);
-        fs.renameSync(req.files.beeIcon[0].path, beeIconPath);
-      }
-      if (req.files.beeHeader && req.files.beeHeader.length > 0) {
-        beeHeaderName = `${req.files.beeHeader[0].mimetype.split('/')[1]}`;
-        const beeHeaderPath = path.join('/app/media',beeHeaderName);
-        fs.renameSync(req.files.beeIcon[0].path, beeHeaderPath);
-      }
+      if (req.files.beeIcon && req.files.beeIcon.length > 0) beeIconName = req.files.beeIcon[0].filename;
+      if (req.files.beeHeader && req.files.beeHeader.length > 0) beeHeaderName = req.files.beeHeader[0].filename;
 
       //一旦前の情報を取得する
       const beforeBee = await Bees.findOne({beeId : beeId});
@@ -187,18 +174,18 @@ exports.deleteBee = async (req,res) => {
 exports.getFollow = async (req,res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 30;
+    const limit = 30;
     const skip = (page - 1) * limit;
     const beeId = req.params.beeId;
-    const bee = await Bees.findOne({ beeId : beeId}).populate({
+    const bee = await Bees.find({ beeId : beeId }).populate({
       path: 'follow',
-      select: 'beeId beeName description beeIcon',
+      select : 'beeId beeName description beeIcon beeHeader',
       options : { skip : skip, limit : limit },
     });
 
     if(!bee) return res.status(404).json({ error : 'Bee not found' });
 
-    res.json(bee.follow);
+    res.status(200).json(bee.follow);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error : 'Internal Server Error '});
@@ -224,23 +211,22 @@ exports.updateFollow = async (req,res) => {
     const followBee = await Bees.findOne({ beeId : followId});
     if(!followBee) return res.status(404).json({ error : 'Follow Bee Not Found' });
 
-    if (!sessionBee.follow.includes(followId)) {
-      sessionBee.follow.push(followId);
+    //followの追加、削除
+    if (!sessionBee.follow.includes(followBee._id)) {
+      await Bees.updateOne({beeId : beeId}, {$addToSet : {follow : followBee._id}});
     } else {
-      const indexBee = sessionBee.follow.indexOf(followId);
-      sessionBee.follow.splice(indexBee, 1);
+      await Bees.updateOne({beeId : beeId}, {$pull : {follow : followBee._id}});
     }
-    await sessionBee.save();
 
-    if(!followBee.follower.includes(beeId)){
-      followBee.follower.push(beeId);
+    //followerの追加、削除
+    if(!followBee.follower.includes(sessionBee._id)){
+      await Bees.updateOne({beeId : beeId}, {$addToSet : { follower : sessionBee._id }});
     } else {
-      const indexFollow = followBee.follower.indexOf(beeId);
-      followBee.follower.splice(indexFollow,1);
+      await Bees.updateOne({beeId : beeId}, {$pull : { follower : sessionBee._id }});
     }
-    await followBee.save();
 
     res.status(200).json({ message : 'follow changing success' });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({error : 'Internal Server Error'});
@@ -251,13 +237,13 @@ exports.updateFollow = async (req,res) => {
 exports.getFollower = async (req,res) => {
   try{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 30;
+    const limit = 30;
     const skip = (page - 1) * limit;
     const beeId = req.params.beeId;
 
-    const bee = await Bees.findOne({ beeId : beeId }).populate({
+    const bee = await Bees.find({ beeId : beeId }).populate({
       path : 'follower',
-      selsct : 'beeId beeName description beeIcon',
+      selsct : 'beeId beeName description beeIcon beeHeader',
       options : { skip : skip, limit : limit },
     });
 
@@ -273,12 +259,13 @@ exports.getFollower = async (req,res) => {
 exports.getJoinBeehive = async (req,res) => {
   try{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 30;
+    const limit = 30;
     const skip = (page - 1) * limit;
     const beeId = req.params.beeId;
 
-    const bee = await Bees.findOne({ beeId : beeId }).populate({
+    const bee = await Bees.find({ beeId : beeId }).populate({
       path : 'joinBeehive',
+      select : 'beehiveId beehiveName description beehiveIcon beehiveHeader',
       options : { skip : skip, limit : limit }
     });
 
@@ -297,7 +284,7 @@ exports.getSendHoney = async (req,res) => {
     const skip = (page - 1) * limit;
     const beeId = req.params.beeId;
 
-    const bee = await Bees.findOne({ beeId : beeId }).populate({
+    const bee = await Bees.find({ beeId : beeId }).populate({
       path : 'sendHoney',
       options : { skip : skip, limit : limit },
     });
@@ -316,11 +303,11 @@ exports.getBlock = async (req,res) => {
 
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 30;
+    const limit = 30;
     const skip = (page - 1) * limit;
     const beeId = req.session.beeId;
 
-    const bee = await Bees.findOne({ beeId : beeId }).populate({
+    const bee = await Bees.find({ beeId : beeId }).populate({
       path : 'block',
       options : { skip : skip, limit : limit }
     });
@@ -342,25 +329,18 @@ exports.updateBlock = async (req,res) => {
     const blockId = req.params.blockId;
 
     const bee = await Bees.findOne({beeId : beeId});
-    const blockBee = await Bees.findOne({beeId : beeId});
+    const blockBee = await Bees.findOne({beeId : blockId});
 
     if(!bee || !blockBee) return res.status(404).json({ error : 'Bee Not Found', bee : (bee ? true : false), block : (blockBee ? true : false)});
 
-    if(!bee.block.includes(blockId)) {
-      bee.block.push(blockId);
+    if(!bee.block.includes(blockBee._id)) {
+      await Bees.updateOne({beeId : beeId}, {$addToSet : { block : blockBee._id }});
     }else{
-      const blockIndex = bee.block.indexOf(blockId);
-      bee.block.splice(blockIndex,1);
+      await Bees.updateOne({beeId : beeId}, {$pull : { block : blockBee._id }});
     }
 
-    await bee.save();
   } catch (error) {
     console.error(error);
     res.status(500).json({error : 'Internal Server Error'});
   }
-}
-
-
-async function getBee (req,res,next) {
-
 }
