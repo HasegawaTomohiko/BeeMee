@@ -12,6 +12,7 @@ const beeRoute = require("./routes/bee");
 const beehiveRoute = require("./routes/beehive");
 const honeycombRoute = require("./routes/honeycomb");
 const authRoute = require("./routes/auth");
+const path = require("path");
 
 //サーバ設定
 const server = express();
@@ -48,9 +49,9 @@ server.use(session({
 }));
 //server.use(cookie());
 server.use(body.urlencoded({extended: false}));
+server.use("/media",express.static(path.join(__dirname, "/app/media")));
 server.use("/bee",beeRoute);
 server.use("/beehive",beehiveRoute);
-server.use("/honeycomb",honeycombRoute);
 server.use("/auth",authRoute);
 
 

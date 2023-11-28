@@ -2,12 +2,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ReplySchema = new Schema({
-  replyId: { type: String, unique: true },
-  beeId: { type: Schema.Types.ObjectId, ref: 'Bees'},
-  honeycombId: { type: Schema.Types.ObjectId, ref: 'Honeycombs'},
-  posts: { type: String, required: true, max: 500},
-  media: [{type:String}],
-  reply:[{ type: Schema.Types.ObjectId, ref:'Replys' }],
+  _beeId: { type: Schema.Types.ObjectId, ref: 'Bees'},
+  _honeycombId: { type: Schema.Types.ObjectId, ref: 'Honeycombs'},
+  posts: { type: String, required: true, max: 2000},
+  media: [{type:String}]
 },
   {timestamps : true}
 );

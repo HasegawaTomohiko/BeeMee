@@ -9,28 +9,13 @@ const BeeSchema = new Schema({
   customUrl: { type: String },
   beeIcon: { type: String },
   beeHeader: { type: String },
-  follow: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Bees',
-  }],
-  follower: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Bees',
-  }],
-  joinBeehive: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Beehives',
-  }],
-  sendHoney: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Honeycombs',
-  }],
-  block: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Bees',
-  }]
-},
-  {timestamps: false}
-);
+  follow: [{ type: Schema.Types.ObjectId,ref: 'Bees'}],
+  follower: [{type: Schema.Types.ObjectId,ref: 'Bees'}],
+  joinBeehive: [{type: Schema.Types.ObjectId,ref: 'Beehives'}],
+  sendHoney: [{type: Schema.Types.ObjectId,ref: 'Honeycombs'}],
+  block: [{type: Schema.Types.ObjectId,ref: 'Bees'}]
+},{
+  timestamps: false
+});
 
 module.exports = mongoose.model('Bees',BeeSchema);

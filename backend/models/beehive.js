@@ -11,7 +11,7 @@ const BeehiveSchema = new Schema({
   joinedBee: [{ type:Schema.Types.ObjectId, ref:'Bees'}],
   blockBee: [{type:Schema.Types.ObjectId, ref:'Bees'}]
 },{
-  timestamps: true,
+  timestamps: false,
 });
 
 module.exports = mongoose.model('Beehives',BeehiveSchema);
