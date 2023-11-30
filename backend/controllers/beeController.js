@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const uuid = require("uuid").v4;
+const fs = require("fs");
+const path = require("path");
 const Bees = require("../models/bee");
 const BeeAuth = require("../models/beeAuth");
 
@@ -135,7 +137,10 @@ exports.updateBee = async (req,res) => {
 		let beeHeaderName;
 
 		//ファイルが存在していればファイル名を変更して保存させる。
-		if (req.files.beeIcon && req.files.beeIcon.length > 0) beeIconName = req.files.beeIcon[0].filename;
+		if (req.files.beeIcon && req.files.beeIcon.length > 0) {
+			
+			beeIconName = req.files.beeIcon[0].filename;
+		}
 		if (req.files.beeHeader && req.files.beeHeader.length > 0) beeHeaderName = req.files.beeHeader[0].filename;
 
 		const updateBee = await Bees.findOneAndUpdate({ beeId : beeId },{
@@ -319,9 +324,9 @@ exports.updateBlock = async (req,res) => {
 		if(!bee || !blockBee) return res.status(404).json({ error : 'Bee Not Found', bee : (bee ? true : false), block : (blockBee ? true : false)});
 
 		if(!bee.block.includes(blockBee._id)) {
-		await Bees.updateOne({beeId : beeId}, {$addToSet : { block : blockBee._id }});
+			await Bees.updateOne({beeId : beeId}, {$addToSet : { block : blockBee._id }});
 		}else{
-		await Bees.updateOne({beeId : beeId}, {$pull : { block : blockBee._id }});
+			await Bees.updateOne({beeId : beeId}, {$pull : { block : blockBee._id }});
 		}
 
 	} catch (error) {

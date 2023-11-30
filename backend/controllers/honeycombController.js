@@ -1,5 +1,7 @@
 const multer = require("multer");
 const uuid = require("uuid").v4;
+const fs = require("fs");
+const path = require("path");
 const Honeycombs = require("../models/honeycomb");
 const Beehives = require("../models/beehive");
 const Bees = require("../models/bee");
@@ -94,6 +96,7 @@ exports.createHoneycomb = async (req,res) => {
 	if(!req.sessionId) return res.state(401).json({ error : 'セッションIDが存在していません'});
 
 	upload.fields([{name : 'HoneycombMedia', maxCount : 4}])(req,res, async function(err){
+		
 		if(err) {
 			console.error(err);
 			return res.status(500).json({ error : 'Internal Server Error '});
@@ -109,8 +112,10 @@ exports.createHoneycomb = async (req,res) => {
 			const bee = await Bees.findOne({ beeId : beeId}, 'beeId _id');
 			const beehive = await Beehives.findOne({ beehiveId : beehiveId }, 'beehiveId joinedBee _id');
 
+			//
 			if(!bee || !beehive) return res.status(404).json({ error : 'Not Found'});
 
+			//Beehiveのユーザでなければ作成できない
 			if(!beehive.joinedBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveには参加していません'});
 
 			//画像、動画データの格納及び保存
@@ -169,6 +174,13 @@ exports.updateHoneycomb = async (req,res) => {
 			let mediaNames = [];
 
 			if(req.files.HoneycombMedia) {
+				honeycomb.media.forEach(filename => {
+					fs.unlink(path.join('/app/media', filename), err => {
+						if(err) {
+							console.error(err);
+						}
+					});
+				});
 				req.files.HoneycombMedia.forEach(file => {
 					mediaNames.push(file.filename);
 				});

@@ -1,5 +1,7 @@
 const multer = require("multer");
 const uuid = require("uuid").v4;
+const fs = require("fs");
+const path = require("path");
 const Beehives = require("../models/beehive");
 const Honeycombs = require("../models/honeycomb");
 const Bees = require("../models/bee");
@@ -112,8 +114,30 @@ exports.updateBeehive = async (req,res) => {
             let beehiveIconName;
             let beehiveHeaderName;
 
-            if (req.files.beehiveIcon && req.files.beehiveIcon.length > 0) beehiveIconName = req.files.beehiveIcon[0].filename;
-            if (req.files.beehiveHeader && req.files.beehiveHeader.length > 0) beehiveHeaderName = req.files.beehiveHeader[0].filename;
+            //beehiveIconの保存処理(前のファイルを削除)
+            if (req.files.beehiveIcon && req.files.beehiveIcon.length > 0){
+                fs.unlinkSync(path.join('/app/media', beehive.beehiveIcon), err => {
+                    if (err) {
+                        console.error(err);
+                    }
+                });
+                beehiveIconName = req.files.beehiveIcon[0].filename;
+            } else {
+                beehiveIconName = beehive.beehiveIcon;
+            }
+
+            //beehiveHeaderの保存処理(前のファイルを削除)
+            if (req.files.beehiveHeader && req.files.beehiveHeader.length > 0){
+                
+                fs.unlinkSync(path.join('/app/media', beehive.beehiveHeader), err => {
+                    if (err) {
+                        console.error(err);
+                    }
+                });
+                beehiveHeaderName = req.files.beehiveHeader[0].filename;
+            } else {
+                beehiveHeaderName = beehive.beehiveHeader;
+            }
 
             const updateBeehive = await Beehives.findOneAndUpdate({ beehiveId : beehiveId },{
                 beehiveName : beehiveName,
