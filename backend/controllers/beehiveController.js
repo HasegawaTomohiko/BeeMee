@@ -41,8 +41,8 @@ exports.getBeehive = async (req,res) => {
 
 exports.createBeehive = async (req,res) => {
 
-    if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在しません' });
-    upload.fields({name : 'beehiveIcon',maxCount : 1}, {name : 'beehiveHeader',maxCount : 1})(req,res, async function (err){
+    if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在しません' });
+    upload.fields([{name : 'beehiveIcon',maxCount : 1}, {name : 'beehiveHeader',maxCount : 1}])(req,res, async function (err){
 
         if(err) {
             console.error(err);
@@ -62,8 +62,8 @@ exports.createBeehive = async (req,res) => {
             if(!bee) return res.status(400).json({ error : 'Bee Not Found'});
 
             //ファイル名取得
-            let beehiveIconName;
-            let beehiveHeaderName;
+            let beehiveIconName = '';
+            let beehiveHeaderName = '';
 
             if (req.files.beehiveIcon && req.files.beehiveIcon.length > 0) beehiveIconName = req.files.beehiveIcon[0].filename;
             if (req.files.beehiveHeader && req.files.beehiveHeader.length > 0) beehiveHeaderName = req.files.beehiveHeader[0].filename;
@@ -81,9 +81,9 @@ exports.createBeehive = async (req,res) => {
 
             await beehive.save();
 
-            await Bees.updateOne({ beeId : beeId },{$addToSet : { joinBeehive : beehive._id}});
+            const updateBee = await Bees.findOneAndUpdate({ beeId : beeId },{$addToSet : { joinBeehive : beehive._id}},{new:true});
 
-            res.status(201).json({beehive});
+            res.status(201).json({beehive : beehive, bee : updateBee});
         } catch (error) {
             console.error(error);
             res.status(500);
@@ -111,8 +111,8 @@ exports.updateBeehive = async (req,res) => {
 
             if(!beehive.queenBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveのQueenではありません' });
 
-            let beehiveIconName;
-            let beehiveHeaderName;
+            let beehiveIconName = beehive.beehiveIcon;
+            let beehiveHeaderName = beehive.beehiveHeader;
 
             //beehiveIconの保存処理(前のファイルを削除)
             if (req.files.beehiveIcon && req.files.beehiveIcon.length > 0){
@@ -122,8 +122,6 @@ exports.updateBeehive = async (req,res) => {
                     }
                 });
                 beehiveIconName = req.files.beehiveIcon[0].filename;
-            } else {
-                beehiveIconName = beehive.beehiveIcon;
             }
 
             //beehiveHeaderの保存処理(前のファイルを削除)
@@ -135,8 +133,6 @@ exports.updateBeehive = async (req,res) => {
                     }
                 });
                 beehiveHeaderName = req.files.beehiveHeader[0].filename;
-            } else {
-                beehiveHeaderName = beehive.beehiveHeader;
             }
 
             const updateBeehive = await Beehives.findOneAndUpdate({ beehiveId : beehiveId },{
@@ -146,7 +142,7 @@ exports.updateBeehive = async (req,res) => {
                 beehiveHeader : beehiveHeaderName,
             },{ new : true});
 
-            res.status(201).json({updateBeehive});
+            res.status(201).json(updateBeehive);
         } catch (error) {
             console.error(error);
             res.status(500);
@@ -171,7 +167,7 @@ exports.getQueen = async (req,res) => {
 
         if(!beehive) return res.status(404).json({ error : 'Beehive Not Found' });
 
-        res.status(200).json(beehive.queenBee);
+        res.status(200).json(beehive);
 
     } catch (error) {
         console.error(error);
@@ -194,13 +190,15 @@ exports.updateQueen = async (req,res) => {
 
         if(!beehive.queenBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveのQueenではありません' });
         
+
+        let updateBeehive;
         if(!beehive.queenBee.includes(queenBee._id)){
-            await Beehives.updateOne({beehiveId : beehiveId}, {$addToSet : { queenBee : queenBee._id}});
+            updateBeehive = await Beehives.findOneAndUpdate({beehiveId : beehiveId}, {$addToSet : { queenBee : queenBee._id}}, { new : true });
         } else {
-            await Beehives.updateOne({beehiveId : beehiveId}, {$pull : { queenBee : queenBee._id}});
+            updateBeehive = await Beehives.findOneAndUpdate({beehiveId : beehiveId}, {$pull : { queenBee : queenBee._id}}, { new : true });
         }
 
-        res.status(200).json({ message : 'follow changing success' });
+        res.status(200).json(updateBeehive);
 
     } catch (error) {
         console.error(error);
@@ -223,7 +221,7 @@ exports.getJoinedBee = async (req,res) => {
 
         if(!beehive) return res.status(404).json({ error : 'Beehive Not Found'});
 
-        res.status(200).json(beehive.joinedBee);
+        res.status(200).json(beehive);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error : 'Internal Server Error' });
@@ -243,15 +241,18 @@ exports.updateJoinedBee = async (req,res) => {
         if(!beehive) return res.status(404).json({ error : 'Beehive Not Found' });
         if(!bee) return res.status(404).json({ error : 'Bee Not Found' });
 
+        let updateBeehive;
+        let updateBee;
+
         if(!beehive.joinedBee.includes(bee._id) && !bee.joinBeehive.includes(beehive._id)){
-            await Beehives.updateOne({beehiveId : beehiveId}, {$addToSet : {joinedBee : bee._id}});
-            await Bees.updateOne({beeId : beeId}, {$addToSet : {joinBeehive : beehive._id}});
+            updateBeehive = await Beehives.findOneAndUpdate({beehiveId : beehiveId}, {$addToSet : {joinedBee : bee._id}}, { new : true });
+            updateBee = await Bees.findOneAndUpdate({beeId : beeId}, {$addToSet : {joinBeehive : beehive._id}}, { new : true });
         } else {
-            await Beehives.updateOne({beehiveId : beehiveId}, {$pull : { joinedBee : bee._id}});
-            await Bees.updateOne({beeId : beeId}, {$pull : { joinBeehive : beehive._id}});
+            updateBeehive = await Beehives.findOneAndUpdate({beehiveId : beehiveId}, {$pull : { joinedBee : bee._id}}, { new : true });
+            updateBee = await Bees.findOneAndUpdate({beeId : beeId}, {$pull : { joinBeehive : beehive._id}}, { new : true });
         }
 
-        res.status(200).json({ message : 'Joined Beehive success'});
+        res.status(200).json({beehive : updateBeehive, bee : updateBee});
     } catch (error) {
         console.error(error);
         res.status(500).json({ error : 'Internal Server Error' });
@@ -268,7 +269,7 @@ exports.getBlockBee = async (req,res) => {
         const limit = 30;
         const skip = (page - 1) * limit;
 
-        const beehive = await Beehives.findOne({beehiveId : beehiveId},'beehiveId blockBee _id').populate({
+        const beehive = await Beehives.findOne({beehiveId : beehiveId},'beehiveId blockBee queenBee _id').populate({
             path : 'blockBee',
             select : 'beeId beeName description beeIcon beeHeader',
             options : { skip : skip, limit : limit }
@@ -277,7 +278,7 @@ exports.getBlockBee = async (req,res) => {
 
         if (!beehive.queenBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveのqueenではありません'});
 
-        res.status(200).json(beehive.blockBee);
+        res.status(200).json(beehive);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error : 'Internal Server Error' });
@@ -302,13 +303,15 @@ exports.updateBlockBee = async (req,res) => {
 
         if(!beehive.queenBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはBeehiveのQueenではありません' });
 
+        let updateBlock;
+
         if(!beehive.blockBee.includes(blockBee._id)){
-            await Beehives.updateOne({beehiveId : beehiveId}, {$addToSet : {blockBee : blockBee._id}});
+            updateBlock = await Beehives.findOneAndUpdate({beehiveId : beehiveId}, {$addToSet : {blockBee : blockBee._id}}, { new : true });
         } else {
-            await Beehives.updateOne({beehiveId : beehiveId}, {$pull : {blockBee : blockBee._id}});
+            updateBlock = await Beehives.findOneAndUpdate({beehiveId : beehiveId}, {$pull : {blockBee : blockBee._id}}, { new : true });
         }
 
-        res.status(200).json({ message : 'Block Bee Success' });
+        res.status(200).json(updateBlock);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error : 'Internal Server Error' });

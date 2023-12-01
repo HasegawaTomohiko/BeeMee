@@ -186,13 +186,14 @@ exports.updateHoneycomb = async (req,res) => {
 				});
 			}
 
-			await Honeycombs.findOneAndUpdate({ _id : honeycombId},{
+			const updateHoneycomb = await Honeycombs.findOneAndUpdate({ _id : honeycombId},{
 				title : title,
 				posts : posts,
 				media : mediaNames
-			});
+			},{new : true});
 
-			res.status(200).json({message : 'Update Success'});
+			res.status(200).json(updateHoneycomb);
+
 		} catch (error) {
 			console.error(error);
 			res.status(500).json({ error : 'Internal Server Error'});
@@ -229,7 +230,7 @@ exports.getHoney = async (req,res) => {
 
 		if(!honeycomb) return res.status(404).json({ error : 'Honeycomb Not Found'});
 
-		res.status(200).json(honeycomb.honey);
+		res.status(200).json(honeycomb);
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error : 'Internal Server Error' });
@@ -255,15 +256,18 @@ exports.updateHoney = async (req,res) => {
 
 		if(!bee || !beehive || !honeycomb) return res.status(404).json({ error : 'Not Found'});
 
+		let updateHoneycomb ;
+		let updateBee;
+
 		if(!honeycomb.honey.includes(bee._id) && !bee.sendHoney.includes(honeycomb._id)){
-			await Honeycombs.updateOne({ _id : honeycombId }, { $addToSet : { honey : bee._id }});
-			await Bees.updateOne({ beeId : beeId }, {$addToSet : { sendHoney : honeycomb._id }});
+			updateHoneycomb = await Honeycombs.findOneAndUpdate({ _id : honeycombId }, { $addToSet : { honey : bee._id }}, { new : true });
+			updateBee = await Bees.findOneAndUpdate({ beeId : beeId }, {$addToSet : { sendHoney : honeycomb._id }}, { new : true });
 		} else {
-			await Honeycombs.updateOne({ _id : honeycombId }, { $pull : { honey : bee._id }});
-			await Bees.updateOne({ beeId : beeId }, { $pull : { sendHoney : honeycomb._id}});
+			updateHoneycomb = await Honeycombs.findOneAndUpdate({ _id : honeycombId }, { $pull : { honey : bee._id }}, { new : true });
+			updateBee = await Bees.findOneAndUpdate({ beeId : beeId }, { $pull : { sendHoney : honeycomb._id}}, { new : true });
 		}
 
-		res.status(200).json({ message : 'Send Honey Success' });
+		res.status(200).json(updateHoneycomb,updateBee);
 
 	} catch (error) {
 		console.error(error);

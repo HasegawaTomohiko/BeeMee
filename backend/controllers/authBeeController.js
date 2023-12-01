@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const BeeAuth = require("../models/beeAuth");
+const uuid = require("uuid").v4;
 
 
 //良くない
@@ -33,7 +34,8 @@ exports.authBee = async (req,res) => {
 		if (!match) return res.status(401).json({ error : 'Incorrect password', beeId : true, password : false});
 
 		req.session.beeId = beeId;
-		res.status(200).json({ message : 'Auth success', sessionId : req.sessionId });
+		req.session.sessionId = uuid();
+		res.status(200).json({ sessionId : req.session.beeId, bee : authBee });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ error : 'Internal Server Error' });
@@ -44,9 +46,9 @@ exports.logoutBee = async (req,res) => {
 	if (!req.session.beeId) return res.status(500).json({ error : 'You dont have Session' });
 	req.session.destroy((err) => {
 		if(err){
-		console.error(err);
-		return res.status(500).json({ error : 'Internal Server Error' });
+			console.error(err);
+			return res.status(500).json({ error : 'Internal Server Error' });
 		}
-		res.status(200).json({ message : 'Logout Success'});
+		res.status(200).json({ message : 'Logout Success', res : true});
 	});
 }

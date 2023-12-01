@@ -4,15 +4,14 @@ const mongoose = require("mongoose");
 const { Sequelize } = require('sequelize');
 const session = require("express-session");
 const body = require("body-parser");
+const path = require("path");
 //const cookie = require("cookie-parser");
 require('dotenv').config();
 
 //router
 const beeRoute = require("./routes/bee");
 const beehiveRoute = require("./routes/beehive");
-const honeycombRoute = require("./routes/honeycomb");
 const authRoute = require("./routes/auth");
-const path = require("path");
 
 //サーバ設定
 const server = express();

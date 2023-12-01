@@ -147,12 +147,12 @@ exports.updateReply = async (req,res) => {
         });
       }
 
-      await Honeycombs.findOneAndUpdate({ _id : replyId },{
+      const updateReply = await Replys.findOneAndUpdate({ _id : replyId },{
         posts : posts,
         media : mediaNames
       });
 
-      res.status(200).json({message : 'Update Success'});
+      res.status(200).json(updateReply);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error : 'Internal Server Error'});

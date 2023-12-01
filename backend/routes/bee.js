@@ -41,7 +41,7 @@ router.get("/:beeId/follower",beeController.getFollower);
 /**
  * 参加Beehive取得
  */
-router.get("/:beeId/joinedBeehive",beeController.getJoinBeehive);
+router.get("/:beeId/joinBeehive",beeController.getJoinBeehive);
 
 /**
  * Honeyを送ったリスト取得
