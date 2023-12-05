@@ -67,12 +67,12 @@ exports.getHoneycomb = async (req,res) => {
 		const honeycombId = req.params.honeycombId;
 
 		const beehive = await Beehives.findOne({ beehiveId : beehiveId}).select('beehiveId _id');
-		const honeycomb = await Honeycombs.findOne({ _id : honeycombId, _beehiveId : beehive._id }).populate({
-			path : '_beeId',
-			select : 'beeId beeName beeIcon'
-		},{
-			path : '_beehiveId',
-			select : 'beehiveId beehiveName beehiveIcon beehiveHeader'
+		const honeycomb = await Honeycombs.findOne({ _id: honeycombId, _beehiveId: beehive._id }).populate({
+			path: '_beeId',
+			select: 'beeId beeName beeIcon'
+		}).populate({
+			path: '_beehiveId',
+			select: 'beehiveId beehiveName beehiveIcon beehiveHeader'
 		});
 
 		if (!honeycomb || !beehive) return res.status(404).json({ error : 'Not Found'});
@@ -93,7 +93,7 @@ exports.getHoneycomb = async (req,res) => {
  */
 exports.createHoneycomb = async (req,res) => {
 
-	if(!req.sessionId) return res.state(401).json({ error : 'セッションIDが存在していません'});
+	if(!req.session.beeId) return res.state(401).json({ error : 'セッションIDが存在していません'});
 
 	upload.fields([{name : 'HoneycombMedia', maxCount : 4}])(req,res, async function(err){
 		
@@ -152,7 +152,7 @@ exports.createHoneycomb = async (req,res) => {
  * @param {*} res 
  */
 exports.updateHoneycomb = async (req,res) => {
-	if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在していません'});
+	if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません'});
 
 	upload.fields([{name : 'HoneycombMedia',maxCount : 4}])(req,res, async function(error){
 		try {
@@ -243,7 +243,7 @@ exports.getHoney = async (req,res) => {
  * @param {*} res 
  */
 exports.updateHoney = async (req,res) => {
-	if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在していません'});
+	if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません'});
 
 	try{
 		const beehiveId = req.params.beehiveId;
@@ -267,7 +267,7 @@ exports.updateHoney = async (req,res) => {
 			updateBee = await Bees.findOneAndUpdate({ beeId : beeId }, { $pull : { sendHoney : honeycomb._id}}, { new : true });
 		}
 
-		res.status(200).json(updateHoneycomb,updateBee);
+		res.status(200).json({honeycomb : updateHoneycomb, bee : updateBee});
 
 	} catch (error) {
 		console.error(error);

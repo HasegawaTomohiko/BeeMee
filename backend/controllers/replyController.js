@@ -54,9 +54,9 @@ exports.getReply = async (req,res) => {
  * @param {*} res 
  */
 exports.createReply = async (req,res) => {
-  if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在していません' });
+  if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません' });
 
-  upload.fields([{name : 'ReplyMedia', maxCount : 4}])(req,res, async function (err){
+  upload.fields([{name : 'replyMedia', maxCount : 4}])(req,res, async function (err){
     if(err){
       console.error(err);
       return res.status(500).json({ error : 'Internal Server Error' });
@@ -66,7 +66,7 @@ exports.createReply = async (req,res) => {
       const beeId = req.session.beeId;
       const beehiveId = req.params.beehiveId;
       const honeycombId = req.params.honeycombId;
-      const posts = rep.body.posts;
+      const posts = req.body.posts;
 
       const bee = await Bees.findOne({beeId : beeId}, 'beeId _id');
       const beehive = await Beehives.findOne({beehiveId : beehiveId},'beehiveId _ id joinedBee');
@@ -90,9 +90,11 @@ exports.createReply = async (req,res) => {
         media : mediaNames
       });
 
+      const updateHoneycomb = await Honeycombs.findOneAndUpdate({ _id :  honeycombId },{$addToSet : { reply : reply._id }},{ new : true});
+
       await reply.save();
 
-      res.status(201).json(reply);
+      res.status(201).json({ reply : reply, honeycomb : updateHoneycomb});
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error : 'Internal Server Error' });
@@ -106,9 +108,9 @@ exports.createReply = async (req,res) => {
  * @param {*} res 
  */
 exports.updateReply = async (req,res) => {
-  if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在しません'});
+  if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在しません'});
 
-  upload.fields([{ name : 'ReplyMedia', maxCount : 4}])(req,res, async function (err){
+  upload.fields([{ name : 'replyMedia', maxCount : 4}])(req,res, async function (err){
 
     if(err){
       console.error(err);

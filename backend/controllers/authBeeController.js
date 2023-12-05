@@ -2,6 +2,10 @@ const bcrypt = require("bcrypt");
 const BeeAuth = require("../models/beeAuth");
 const uuid = require("uuid").v4;
 
+exports.checkSession = async (req,res) => {
+	const auth = req.session.beeId ? true : false;
+	res.json({ auth });
+}
 
 //良くない
 exports.checkDuplicateBee = async (req,res) => {

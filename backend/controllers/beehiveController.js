@@ -92,8 +92,8 @@ exports.createBeehive = async (req,res) => {
 }
 
 exports.updateBeehive = async (req,res) => {
-    if (!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在しません' });
-    upload.fields({name : 'beehiveIcon',maxCount : 1}, {name : 'beehiveHeader',maxCount : 1})(req,res, async function (err){
+    if (!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在しません' });
+    upload.fields([{name : 'beehiveIcon',maxCount : 1}, {name : 'beehiveHeader',maxCount : 1}])(req,res, async function (err){
 
         if(err) {
             console.error(err);
@@ -106,9 +106,11 @@ exports.updateBeehive = async (req,res) => {
             const beehiveName = req.body.beehiveName;
             const description = req.body.description;
 
-            const beehive = await Beehives.findOne({ beehiveId : beehiveId },'beehiveId beehiveName description beehiveIcon beehiveHeader _id');
+            const beehive = await Beehives.findOne({ beehiveId : beehiveId },'beehiveId beehiveName description beehiveIcon beehiveHeader _id queenBee');
             const bee = await Bees.findOne({ beeId : beeId },'beeId _id');
 
+            if(!bee) return res.status(404).json({ error : 'Bee Not Found'});
+            if(!beehive) return res.status(404).json({ error: 'Beehive Not Found'});
             if(!beehive.queenBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveのQueenではありません' });
 
             let beehiveIconName = beehive.beehiveIcon;
@@ -176,7 +178,7 @@ exports.getQueen = async (req,res) => {
 }
 
 exports.updateQueen = async (req,res) => {
-    if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在しません'});
+    if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在しません'});
     try {
         const beehiveId = req.params.beehiveId;
         const queenBeeId = req.params.queenBeeId;
@@ -229,7 +231,7 @@ exports.getJoinedBee = async (req,res) => {
 }
 
 exports.updateJoinedBee = async (req,res) => {
-    if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在していません' });
+    if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません' });
 
     try {
         const beehiveId = req.params.beehiveId;
@@ -260,7 +262,7 @@ exports.updateJoinedBee = async (req,res) => {
 }
 
 exports.getBlockBee = async (req,res) => {
-    if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在していません' });
+    if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません' });
 
     try {
         const beehiveId = req.params.beehiveId;
@@ -286,7 +288,7 @@ exports.getBlockBee = async (req,res) => {
 }
 
 exports.updateBlockBee = async (req,res) => {
-    if(!req.sessionId) return res.status(401).json({ error : 'セッションIDが存在していません' });
+    if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません' });
 
     try {
         const beehiveId = req.params.beehiveId;

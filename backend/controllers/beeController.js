@@ -127,46 +127,46 @@ exports.updateBee = async (req,res) => {
 		}
 
 		try {
-		const beeId = req.session.beeId;
-		const beeName = req.body.beeName;
-		const location = req.body.location;
-		const description = req.body.description;
-		const customUrl = req.body.customUrl;
+			const beeId = req.session.beeId;
+			const beeName = req.body.beeName;
+			const location = req.body.location;
+			const description = req.body.description;
+			const customUrl = req.body.customUrl;
 
-		const bee = await Bees.findOne({ beeId : beeId },'beeId _id beeIcon beeHeader');
+			const bee = await Bees.findOne({ beeId : beeId },'beeId _id beeIcon beeHeader');
 
-		let beeIconName = bee.beeIcon;
-		let beeHeaderName = bee.beeHeader;
+			let beeIconName = bee.beeIcon;
+			let beeHeaderName = bee.beeHeader;
 
-		//ファイルが存在していればファイル名を変更して保存させる。
-		if (req.files.beeIcon && req.files.beeIcon.length > 0) {
-			fs.unlinkSync(path.join('/app/media',bee.beeIcon), err => {
-				if (err) {
-					console.error(err);
-				}
-			});
-			beeIconName = req.files.beeIcon[0].filename;
-		}
+			//ファイルが存在していればファイル名を変更して保存させる。
+			if (req.files.beeIcon && req.files.beeIcon.length > 0) {
+				fs.unlinkSync(path.join('/app/media',bee.beeIcon), err => {
+					if (err) {
+						console.error(err);
+					}
+				});
+				beeIconName = req.files.beeIcon[0].filename;
+			}
 
-		if (req.files.beeHeader && req.files.beeHeader.length > 0) {
-			fs.unlinkSync(path.join('/app/path',bee.beeHeader), err => {
-				if (err) {
-					console.error(err);
-				}
-			});
-			beeHeaderName = req.files.beeHeader[0].filename;
-		}
+			if (req.files.beeHeader && req.files.beeHeader.length > 0) {
+				fs.unlinkSync(path.join('/app/path',bee.beeHeader), err => {
+					if (err) {
+						console.error(err);
+					}
+				});
+				beeHeaderName = req.files.beeHeader[0].filename;
+			}
 
-		const updateBee = await Bees.findOneAndUpdate({ beeId : beeId },{
-			beeName: beeName,
-			location: location,
-			description: description,
-			customUrl: customUrl,
-			beeIcon: beeIconName,
-			beeHeader: beeHeaderName,
-		},{new : true});
-	
-		res.status(201).json(updateBee);
+			const updateBee = await Bees.findOneAndUpdate({ beeId : beeId },{
+				beeName: beeName,
+				location: location,
+				description: description,
+				customUrl: customUrl,
+				beeIcon: beeIconName,
+				beeHeader: beeHeaderName,
+			},{new : true});
+		
+			res.status(201).json(updateBee);
 
 		} catch (error) {
 			console.error(error);
@@ -311,14 +311,21 @@ exports.getBlock = async (req,res) => {
 		const page = parseInt(req.query.page) || 1;
 		const limit = 30;
 		const skip = (page - 1) * limit;
-		const beeId = req.session.beeId;
 
-		const bee = await Bees.findOne({ beeId : beeId },'beeId _id block').populate({
+		if(req.params.beeId != req.session.beeId) return res.status(403).json({ error : '認証エラー' });
+
+		const bee = await Bees.find({ beeId : req.session.beeId },'beeId _id block').populate({
 			path : 'block',
 			select : 'beeId _id beeName description beeIcon beeHeader',
-		}).skip(skip).limit(limit);
+			options : {
+				skip : skip,
+				limit : limit
+			}
+		});
 
-		if (!bee) return res.status(404).json({ error : 'Bee Not Found'});
+		//console.log(bee);
+
+		if (!bee) return res.status(404).json({ error : "Bee Not Found" });
 
 		res.status(200).json(bee);
 	} catch (error) {

@@ -5,6 +5,6 @@ router.post("/", beeAuthController.authBee);
 
 router.delete("/",beeAuthController.logoutBee);
 
-router.post("/check",beeAuthController.checkDuplicateBee);
+router.get("/checkSession",beeAuthController.checkSession);
 
 module.exports = router;

@@ -52,12 +52,12 @@ router.get("/:beeId/sendHoney",beeController.getSendHoney);
  * ブロックリスト取得
  * SessionIdが存在する場合のみ有効
  */
-router.get("/block",beeController.getBlock);
+router.get("/:beeId/block",beeController.getBlock);
 
 /**
  * ブロックリスト更新(追加、削除)
  * SessionIdが存在する場合のみ有効
  */
-router.patch("/block/:blockId",beeController.updateBlock);
+router.patch("/:beeId/block/:blockId",beeController.updateBlock);
 
 module.exports = router;
