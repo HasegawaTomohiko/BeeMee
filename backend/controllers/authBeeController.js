@@ -3,27 +3,9 @@ const BeeAuth = require("../models/beeAuth");
 const uuid = require("uuid").v4;
 
 exports.checkSession = async (req,res) => {
-	const auth = req.session.beeId ? true : false;
-	res.json({ auth });
-}
-
-//良くない
-exports.checkDuplicateBee = async (req,res) => {
-
-	const bodyInfo = req.body.info;
-
-	try {
-		const duplicate = await BeeAuth.findOne({ where: { info:bodyInfo} });
-
-		if (duplicate) {
-		res.status(200).send(false);
-		} else {
-		res.status(200).send(true);
-		}
-	} catch (error) {
-		console.log(error);
-		res.status(500).send(false);
-	}
+	if(!req.session.beeId) return res.status(401).json({ error : 'Not Logged in'});
+	
+	res.status(200).json({ beeId : req.session.beeId });
 }
 
 exports.authBee = async (req,res) => {

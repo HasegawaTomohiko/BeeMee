@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useState} from "react";
+import React, {createContext, useContext, useState, useEffect } from "react";
 import axios from 'axios';
 import { checkSession } from "@/api/auth";
 
@@ -13,7 +13,7 @@ export const BeeProvider = ({ children }) => {
 
       if(isAuth){
         try {
-          const res = await axios.get(`http://localhost:4000/bee/:beeId`);
+          const res = await axios.get(`http://localhost:4000/bee/${isAuth.beeId}`);
           const beeJson = res.data;
           setBee(beeJson);
         } catch (error) {

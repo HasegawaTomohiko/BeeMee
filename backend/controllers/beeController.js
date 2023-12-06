@@ -24,16 +24,17 @@ const upload = multer({ storage : storage });
  * @returns 
  */
 exports.getBee = async (req,res) => {
-	try {
+	try { 
 		const bee = await Bees.findOne({beeId: req.params.beeId});
 		if (!bee) return res.status(404).json({ error : 'Bee not found'});
 
-		const result = {
+		let result = {
+			_id : bee._id,
 			beeId : bee.beeId,
 			beeName : bee.beeName,
 			description : bee.description,
 			location : bee.location,
-			customurl : bee.customUrl,
+			customUrl : bee.customUrl,
 			beeIcon : bee.beeIcon,
 			beeHeader : bee.beeHeader,
 			follow : bee.follow.length,
@@ -42,7 +43,31 @@ exports.getBee = async (req,res) => {
 			sendHoney : bee.sendHoney.length,
 		};
 
+		if(req.session.beeId){
+			const sessionBee = await Bees.findOne({ beeId : req.session.beeId }).select('beeId _id follow follower block');
+			if(req.session.beeId != req.params.beeId){
+				result = {
+					_id : bee._id,
+					beeId : bee.beeId,
+					beeName : bee.beeName,
+					description : bee.description,
+					location : bee.location,
+					customUrl : bee.customUrl,
+					beeIcon : bee.beeIcon,
+					beeHeader : bee.beeHeader,
+					follow : bee.follow.length,
+					follower : bee.follower.length,
+					joinBeehive : bee.joinBeehive.length,
+					sendHoney : bee.sendHoney.length,
+					isFollow : sessionBee.follow.includes(bee._id),
+					isFollower : sessionBee.follower.includes(bee._id),
+					isBlock : sessionBee.block.includes(bee._id),
+				}
+			}
+		}
+
 		res.status(200).json(result);
+
 	} catch (error) {
 		console.log(error);
 		res.status(500).json({ error : 'Internal Server Error '});
@@ -291,8 +316,14 @@ exports.getSendHoney = async (req,res) => {
 
 		const bee = await Bees.find({ beeId : beeId },'beeId _id sendHoney').populate({
 			path : 'sendHoney',
-			select : 'beeId beeName description beeIcon beeHeader',
+			select : '_beeId _beehiveId title media honey reply',
 			options : { skip : skip, limit : limit },
+		}).populate({
+			path : '_beeId',
+			select : 'beeId _id beeName beeIcon',
+		}).populate({
+			path : '_beehiveId',
+			select : 'beehiveId _id beehiveName beehiveIcon'
 		});
 
 		if (!bee) return res.status(404).json({ error : 'Bee Not Found' });

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { checkSession } from '@/api/auth';
-import { BeeProvider } from '@/context/BeeContext';
+import { BeeProvider } from '@/contexts/BeeContext';
 
 function BeeMee({ Component, pageProps }) {
   const router = useRouter();

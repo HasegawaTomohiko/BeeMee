@@ -28,14 +28,21 @@ exports.getHoneycombList = async (req,res) => {
 		const limit = 30;
 		const skip = (page - 1) * limit;
 		const beehiveId = req.params.beehiveId;
+		const beeId = req.session.beeId;
 
 		//beehiveの_idを取得
 		const beehive = await Beehives.findOne({ beehiveId : beehiveId },'beehiveId _id');
+		const bee = await Bees.findOne({ beeId : beeId },'beeId _id joinBeehive block sendHoney');
 
 		if(!beehive) return res.status(404).json({ error : 'Beehive Not Found'});
 		//beehive._idを使用してHoneycombの_beehiveIdと一致しているものをページネーション形式で取得する。
 
-		const honeycombList = await Honeycombs.find({ _beehiveId : beehive._id})
+		if(!bee) return res.status(403).json({ error : 'Bee Not Found. You must Login' });
+
+		if(!bee.joinBeehive.includes(beehive._id)) return res.status(403).json({ error : 'You Not Join Beehive.You must Join Beehive'});
+
+		const honeycombList = await Honeycombs.find({ _beehiveId : beehive._id, _beeId : { $nin : bee.block }})
+		.select('_id title media honey reply')
 		.skip(skip)
 		.limit(limit)
 		.populate({
@@ -43,12 +50,25 @@ exports.getHoneycombList = async (req,res) => {
 			select : 'beeId beeName beeIcon'
 		});
 
-		honeycombList.forEach(honeycomb => {
-			honeycomb.honey = honeycomb.honey.length;
-			honeycomb.reply = honeycomb.reply.length;
-		});
+		let List = [];
 
-		res.status(200).json(honeycombList);
+		honeycombList.forEach(honeycomb => {
+			List.push({
+				_id : honeycomb._id,
+				title : honeycomb.title,
+				bee : {
+					beeId : honeycomb._beeId.beeId,
+					beeName : honeycomb._beeId.beeName,
+					beeIcon : honeycomb._beeId.beeIcon
+				},
+				media : honeycomb.media,
+				replyCount : honeycomb.reply.length,
+				honeyCount : honeycomb.honey.length,
+				isSendHoney : bee.sendHoney.includes(honeycomb._id)
+			});
+		})
+
+		res.status(200).json(List);
 
 	} catch (error) {
 		console.error(error);
@@ -65,19 +85,34 @@ exports.getHoneycomb = async (req,res) => {
 	try {
 		const beehiveId = req.params.beehiveId;
 		const honeycombId = req.params.honeycombId;
+		const beeId = req.session.beeId;
 
+		const bee = await Bees.findOne({ beeId : beeId }).select('beeId _id block joinBeehive sendHoney');
 		const beehive = await Beehives.findOne({ beehiveId : beehiveId}).select('beehiveId _id');
 		const honeycomb = await Honeycombs.findOne({ _id: honeycombId, _beehiveId: beehive._id }).populate({
 			path: '_beeId',
 			select: 'beeId beeName beeIcon'
-		}).populate({
-			path: '_beehiveId',
-			select: 'beehiveId beehiveName beehiveIcon beehiveHeader'
 		});
 
 		if (!honeycomb || !beehive) return res.status(404).json({ error : 'Not Found'});
 
-		res.status(200).json(honeycomb);
+		let result = {
+			_id : honeycomb._id,
+			title : honeycomb.title,
+			posts : honeycomb.posts,
+			bee : {
+				beeId : honeycomb._beeId.beeId,
+				_Id : honeycomb._beeId._id,
+				beeName : honeycomb._beeId.beeName,
+				beeIcon : honeycomb._beeId.beeIcon
+			},
+			media : honeycomb.media,
+			reply : honeycomb.reply.length,
+			honey : honeycomb.honey.length,
+			isSendHoney : bee.sendHoney.includes(honeycomb._id)
+		}
+
+		res.status(200).json(result);
 		
 	} catch (error) {
 		console.error(error);
@@ -169,6 +204,7 @@ exports.updateHoneycomb = async (req,res) => {
 			if(!bee || !beehive || !honeycomb) return res.status(404).json({error : 'Not Found'});
 
 			if(beehive.joinedBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveに参加していません' });
+			if(honeycomb._beeId != bee._id) return res.status(403).json({ error : 'あなたはこのHoneycombの作成者ではありません' });
 
 			//画像、動画データの格納及び保存
 			let mediaNames = [];
