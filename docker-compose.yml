@@ -33,6 +33,7 @@ services:
     ports:
       - 4000:4000
     # バックエンドのコンテナがMongoDBとMySQLのコンテナにアクセスできるようにネットワークを設定
+    restart : always
     networks:
       - beemee-network
     # MongoDBとMySQLのコンテナが起動してからバックエンドのコンテナが起動するように依存関係を設定

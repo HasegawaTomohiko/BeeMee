@@ -5,6 +5,7 @@ const { Sequelize } = require('sequelize');
 const session = require("express-session");
 const body = require("body-parser");
 const path = require("path");
+const cors = require("cors");
 //const cookie = require("cookie-parser");
 require('dotenv').config();
 
@@ -35,6 +36,7 @@ sequelize.authenticate()
     .catch((err) => console.error(err));
 
 //ミドルウェア設定
+server.use(cors());
 server.use(express.json());
 server.use(session({
     secret: 'beemee',
@@ -48,15 +50,16 @@ server.use(session({
 }));
 //server.use(cookie());
 server.use(body.urlencoded({extended: false}));
+
+//ルーティング
 server.use("/media",express.static(path.join(__dirname, "/app/media")));
 server.use("/bee",beeRoute);
 server.use("/beehive",beehiveRoute);
 server.use("/auth",authRoute);
 
-
 //テストURL
 server.get('/', function(req,res){
-    res.send('Lets enjoy Beeeeee!!!');
+    res.send('テストBEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE');
 });
 
 //開始
