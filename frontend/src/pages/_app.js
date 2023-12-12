@@ -14,4 +14,4 @@ function BeeMee({ Component, pageProps }) {
   );
 }
 
-// export default BeeMee;
+export default BeeMee;
