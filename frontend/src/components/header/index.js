@@ -1,16 +1,17 @@
-import { AppBar, Box, Drawer, IconButton, Toolbar, List, ListItem, ListItemText } from "@mui/material";
+import { AppBar, Box, Drawer, IconButton, Toolbar, List, ListItem, ListItemText, Hidden } from "@mui/material";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { Menu,Home,Search,Settings,Coffee } from "@mui/icons-material";
+import { Coffee } from "@mui/icons-material";
 import { useState } from "react";
 
 export default function Header() {
+
     const [sideMenuOpened,setSideMenuOpened] = useState(false);
 
     return (
-        <AppBar position="static" style={{ backgroundColor : '#ff6600'}}>
+        <AppBar position="static" className="beemee-header" style={{ backgroundColor : '#ff6600'}}>
             <Toolbar>
-                <IconButton
+                {/* <IconButton
                     size="large"
                     edge="start"
                     color="inherit"
@@ -18,9 +19,11 @@ export default function Header() {
                     sx={{ mr : 2}}
                     onClick={() => setSideMenuOpened(true)}
                 >
-                    <Menu />
-                </IconButton>
-                <Drawer
+                </IconButton> */}
+
+                <Coffee />
+                
+                {/* <Drawer
                     anchor="left"
                     open={sideMenuOpened}
                     onClose={() => setSideMenuOpened(false)}
@@ -58,7 +61,7 @@ export default function Header() {
                             </Link>
                         </List>
                     </Box>
-                </Drawer>
+                </Drawer> */}
             </Toolbar>
         </AppBar>
     );

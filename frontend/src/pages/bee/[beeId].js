@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Header from '@/components/header';
 import { Typography } from '@mui/material';
 
-export default function regist () {
+export default function bee () {
   
   return (
     <>

@@ -10,16 +10,17 @@ exports.checkSession = async (req,res) => {
 
 exports.authBee = async (req,res) => {
 	try {
-		const beeId = req.body.beeId;
+		const identifier = req.body.identifier;
 		const password = req.body.password;
 
-		const authBee = await BeeAuth.findOne({ where : { beeId : beeId }});
-		if(!authBee) return res.status(404).json({error : 'Bee Not Found', beeId : false, password : false});
+		// beeIdまたはemailでユーザーを検索します
+		const authBee = await BeeAuth.findOne({ where : { [Op.or]: [{ beeId: identifier }, { email: identifier }] }});
+		if(!authBee) return res.status(404).json({error : 'Bee Not Found', identifier : false, password : false});
 
 		const match = await bcrypt.compare(password, authBee.password);
-		if (!match) return res.status(401).json({ error : 'Incorrect password', beeId : true, password : false});
+		if (!match) return res.status(401).json({ error : 'Incorrect password', identifier : true, password : false});
 
-		req.session.beeId = beeId;
+		req.session.beeId = authBee.beeId;
 		req.session.sessionId = uuid();
 		res.status(200).json({ sessionId : req.session.beeId, bee : authBee });
 	} catch (error) {

@@ -6,6 +6,7 @@ const Replys = require("../models/reply");
 const Beehives = require("../models/beehive");
 const Bees = require("../models/bee");
 const Honeycombs = require("../models/honeycomb");
+const bee = require("../models/bee");
 
 const storage = multer.diskStorage({
 	destination: function (req,file, cb) {
@@ -31,16 +32,19 @@ exports.getReply = async (req,res) => {
     const skip = (page - 1) * limit;
     const beehiveId = req.params.beehiveId;
     const honeycombId = req.params.honeycombId;
+    const beeId = req.session.beeId;
     
-    const beehive = await Beehives.findOne({ beehiveId : beehiveId}).select('beehiveId _id');
-    const honeycomb = await Honeycombs.findOne({ _id : honeycombId, _beehiveId : beehive._id }).populate({
-      path : 'reply',
-      options : { skip : skip, limit : limit }
+    const bee = await Bees.findOne({ beeId : beeId}).select('beeId _id block');
+    const beehive = await Beehives.findOne({ beehiveId : beehiveId }).select('beehiveId _id');
+    const honeycomb = await Honeycombs.findOne({ _id : honeycombId, _beehiveId : beehive._id }).select('_id _beeId _beehiveId reply');
+    const reply = await Replys.find({ _id : { $in : honeycomb.reply}, _beeId : { $nin : bee.block }}).skip(skip).limit(limit).populate({
+      path : '_beeId',
+      select : 'beeId _id beeName beeIcon beeHeader',
     });
 
     if(!honeycomb || !beehive) return res.status(404).json({ error : 'Not Found' });
 
-    res.status(200).json(honeycomb.reply);
+    res.status(200).json(reply);
 
   } catch (error) {
     console.error(error);
@@ -90,6 +94,7 @@ exports.createReply = async (req,res) => {
         media : mediaNames
       });
 
+      //リプライの追加処理
       const updateHoneycomb = await Honeycombs.findOneAndUpdate({ _id :  honeycombId },{$addToSet : { reply : reply._id }},{ new : true});
 
       await reply.save();

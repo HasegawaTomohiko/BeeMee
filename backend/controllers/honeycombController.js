@@ -39,12 +39,11 @@ exports.getHoneycombList = async (req,res) => {
 
 		if(!bee) return res.status(403).json({ error : 'Bee Not Found. You must Login' });
 
-		if(!bee.joinBeehive.includes(beehive._id)) return res.status(403).json({ error : 'You Not Join Beehive.You must Join Beehive'});
-
 		const honeycombList = await Honeycombs.find({ _beehiveId : beehive._id, _beeId : { $nin : bee.block }})
 		.select('_id title media honey reply')
 		.skip(skip)
 		.limit(limit)
+		.sort({ createdAt: -1 })
 		.populate({
 			path : '_beeId',
 			select : 'beeId beeName beeIcon'
@@ -76,6 +75,60 @@ exports.getHoneycombList = async (req,res) => {
 	}
 }
 
+
+//未確認で現在完了進行形
+exports.getHotHoneycombsList = async (req,res) => {
+	try {
+		const page = req.query.page || 1;
+		const limit = 30;
+		const skip = (page - 1) * limit;
+		const beeId = req.session.beeId;
+
+		// ユーザの情報を取得
+		const bee = await Bees.findOne({ beeId: beeId }, 'beeId _id joinBeehive block sendHoney');
+		if (!bee) return res.status(403).json({ error: 'Bee Not Found. You must Login' });
+
+		// 1週間前の日付を取得
+		const oneWeekAgo = new Date();
+		oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+		// 参加しているBeehiveから1週間以内に投稿されたHoneycombsを取得
+		const honeycombList = await Honeycombs.aggregate([
+				{ $match: { _beehiveId: { $in: bee.joinBeehive }, _beeId: { $nin: bee.block }, createdAt: { $gte: oneWeekAgo } } },
+				{ $addFields: { rank: { $add: [ { $multiply: [ { $size: "$honey" }, 0.7 ] }, { $size: "$reply" } ] } } },
+				{ $sort: { rank: -1 } },
+				{ $skip: skip },
+				{ $limit: limit },
+				{ $lookup: { from: 'bees', localField: '_beeId', foreignField: '_id', as: '_beeId' } },
+				{ $unwind: '$_beeId' }
+		]);
+
+		let List = [];
+
+		honeycombList.forEach(honeycomb => {
+				List.push({
+						_id: honeycomb._id,
+						title: honeycomb.title,
+						bee: {
+								beeId: honeycomb._beeId.beeId,
+								beeName: honeycomb._beeId.beeName,
+								beeIcon: honeycomb._beeId.beeIcon
+						},
+						media: honeycomb.media,
+						replyCount: honeycomb.reply.length,
+						honeyCount: honeycomb.honey.length,
+						isSendHoney: bee.sendHoney.includes(honeycomb._id)
+				});
+		})
+
+		res.status(200).json(List);
+
+} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: 'Internal Server Error' });
+}
+}
+
 /**
  * Honeycombの情報を取得
  * @param {*} req 
@@ -91,7 +144,10 @@ exports.getHoneycomb = async (req,res) => {
 		const beehive = await Beehives.findOne({ beehiveId : beehiveId}).select('beehiveId _id');
 		const honeycomb = await Honeycombs.findOne({ _id: honeycombId, _beehiveId: beehive._id }).populate({
 			path: '_beeId',
-			select: 'beeId beeName beeIcon'
+			select: 'beeId _id beeName beeIcon beehiveHeader'
+		}).populate({
+			path : '_beehiveId',
+			select : 'beehiveId _id beehiveName beehiveIcon beehiveHeader',
 		});
 
 		if (!honeycomb || !beehive) return res.status(404).json({ error : 'Not Found'});
@@ -100,11 +156,19 @@ exports.getHoneycomb = async (req,res) => {
 			_id : honeycomb._id,
 			title : honeycomb.title,
 			posts : honeycomb.posts,
+			beehive : {
+				beehiveId : honeycomb._beehiveId.beehiveId,
+				_id : honeycomb._beehiveId._id,
+				beehiveName : honeycomb._beehiveId.beehiveName,
+				beehiveIcon : honeycomb._beehiveId.beehiveIcon,
+				beehiveHeader : honeycomb._beehiveId.beehiveHeader,
+			},
 			bee : {
 				beeId : honeycomb._beeId.beeId,
 				_Id : honeycomb._beeId._id,
 				beeName : honeycomb._beeId.beeName,
-				beeIcon : honeycomb._beeId.beeIcon
+				beeIcon : honeycomb._beeId.beeIcon,
+				beeHeader : honeycomb._beeId.beeHeader,
 			},
 			media : honeycomb.media,
 			reply : honeycomb.reply.length,
@@ -242,7 +306,28 @@ exports.updateHoneycomb = async (req,res) => {
  * @param {*} req 
  * @param {*} res 
  */
-exports.deleteHoneycomb = async (req,res) => {}
+exports.deleteHoneycomb = async (req,res) => {
+
+	if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません' });
+
+	try {
+		const beeId = req.session.beeId;
+		const beehiveId = req.params.beehiveId;
+		const honeycombId = req.params.honeycombId;
+
+		const bee = await Bees.findOne({ beeId : beeId }).select('beeId _id joinBeehive');
+		const beehive = await Beehives.findOne({ beehiveId : beehiveId }).select('beehiveId _id');
+		const honeycomb = await Honeycombs.findOne({_id : honeycombId, _beehiveId : beehive._id, _beeId : bee._id});
+
+		if(!honeycomb) return res.status(404).json({ error : 'Not Found'});
+
+		await Honeycombs.findOneAndDelete({ _id : honeycombId , _beehiveId : beehive._id , _beeId : bee._id });
+
+		res.status(200).json({msg : 'Delete Success'});
+	} catch (error) {
+
+	}
+}
 
 /**
  * Honeyリストを取得(ページネーション採用)
