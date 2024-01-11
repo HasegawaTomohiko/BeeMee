@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Header from '@/components/header';
 import { Typography } from '@mui/material';
+import { RegistForm } from '@/components/form/registForm';
 
-export default function regist () {
-  
+function regist () {
   return (
     <>
-      <Header />
+       <RegistForm />
     </>
   );
 }
+
+export default regist;

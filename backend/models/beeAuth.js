@@ -1,4 +1,3 @@
-
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = new Sequelize('BeeMee','root','yourpassword',{
   host: 'beemee-mysql',

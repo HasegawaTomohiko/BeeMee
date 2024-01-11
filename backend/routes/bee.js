@@ -60,4 +60,21 @@ router.get("/:beeId/block",beeController.getBlock);
  */
 router.patch("/block/:blockId",beeController.updateBlock);
 
+function verifyJwt(req,res,next) {
+    const authHeader = req.headers.authroization;
+
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        jwt.verify(token, 'beemee', (err, bee) => {
+            if (err) {
+                return res.sendStatus(403);
+            }
+            req.bee = bee;
+            next();
+        });
+    }else {
+        res.sendStatus(401);
+    }
+}
+
 module.exports = router;

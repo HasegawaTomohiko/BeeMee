@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Header from '@/components/header';
 import { Typography } from '@mui/material';
 
-export default function index () {
+function index () {
   
   return (
     <>
@@ -11,3 +11,5 @@ export default function index () {
     </>
   );
 }
+
+export default index;

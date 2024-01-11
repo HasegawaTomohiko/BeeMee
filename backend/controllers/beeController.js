@@ -83,6 +83,8 @@ exports.createBee = async (req,res) => {
 
 	upload.fields([{name: 'beeIcon',maxCount : 1}, {name:'beeHeader',maxCount:1}])(req,res, async function (err){
 
+		console.log(req.body);
+
 		if(err) {
 			console.error(err);
 			return res.status(500);
