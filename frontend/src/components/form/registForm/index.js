@@ -104,15 +104,6 @@ const RegistForm = () => {
         }
 
         try {
-            // const registData = {
-            //     beeId : beeId,
-            //     password : password,
-            //     email : email,
-            //     beeName : beeName,
-            //     beeIcon : beeIcon,
-            //     beeHeader : beeHeader
-            // } 
-
             const registData = new FormData();
             registData.append('beeId',beeId);
             registData.append('password',password);

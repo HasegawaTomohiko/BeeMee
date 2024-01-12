@@ -13,9 +13,6 @@ const LoginForm = () => {
 
   const handleLogin = async () => {
     try {
-      // const loginData = new FormData();
-      // loginData.append('beeId',beeId);
-      // loginData.append('password',password);
       const loginData = {
         beeId : beeId,
         password : password
@@ -51,7 +48,13 @@ const LoginForm = () => {
   return (
     <Container maxWidth="xs">
       <CssBaseline />
-      <Box>
+      <Box
+        backgroundColor="orange"
+        borderRadius={10}
+        padding={5}
+        mt={{ xs: 4, md: 4 }}
+        justifyContent="center"
+      >
         <Typography>
           Sign in
         </Typography>
@@ -66,6 +69,11 @@ const LoginForm = () => {
           margin="normal"
           name="identifier"
           autoFocus
+          InputProps={{
+            style: {
+                backgroundColor: 'white',
+            }
+        }}
         />
         <TextField
           label="Password"
@@ -76,19 +84,18 @@ const LoginForm = () => {
           fullWidth
           required
           margin="normal"
+          InputProps={{
+            style: {
+                backgroundColor: 'white',
+            }
+        }}
         />
         </Box>
         <Button type="submit" variant="contained" color="primary" sx={{ mt: 3, mb: 2 }} onClick={handleLogin}>
           Sign in
         </Button>
         <Grid container>
-          <Grid item xs>
-            <Link href="#">
-              Forgot Password?
-            </Link>
-          </Grid><br/>
           <Grid item>
-            <br/>
             <Link href="/regist">
               {"Don't have an account? Let's Sing Up"}
             </Link>
