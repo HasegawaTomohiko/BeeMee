@@ -30,6 +30,7 @@ function login () {
     }
 
     checkSession();
+
   },[]);
 
   return (

@@ -3,44 +3,49 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import checkSession from '@/api/checkSession';
 import { Typography } from '@mui/material';
+import Header from '@/components/header';
 
 const Home = () => {
-    const [userInfo, setUserInfo] = useState(null);
+    const [beeInfo, setBeeInfo] = useState(null);
 
     useEffect(() => {
-        
-        const fetchUserInfo = async () => {
-            
+
+        const fetchBeeInfo = async () => {
+
             await checkSession();
 
             try {
                 const beeId = sessionStorage.getItem('beeId');
                 // Get user information
-                const userResponse = await axios.get(`http://localhost:4000/bee/${beeId}`);
-                setUserInfo(userResponse.data);
+                const res = await axios.get(`http://localhost:4000/bee/${beeId}`);
+                setBeeInfo(res.data);
             } catch (error) {
                 console.error(error);
             }
+
         };
 
-        fetchUserInfo();
+        fetchBeeInfo();
     }, []);
 
     useEffect(() => {
-        console.log(userInfo);
-    },[userInfo]);
+        console.log(beeInfo);
+    },[beeInfo]);
 
     return (
-        <div>
-            <h1>User Information</h1>
-            {userInfo && (
-                <>
-                    <Typography>id : {userInfo._id}</Typography>
-                    <Typography>beeId : {userInfo.beeId}</Typography>
-                    <Typography>name : {userInfo.beeName}</Typography>
-                </>
-            )}
-        </div>
+        <>
+            <Header />
+            <div>
+                <h1>User Information</h1>
+                {beeInfo && (
+                    <>
+                        <Typography>id : {beeInfo._id}</Typography>
+                        <Typography>beeId : {beeInfo.beeId}</Typography>
+                        <Typography>name : {beeInfo.beeName}</Typography>
+                    </>
+                )}
+            </div>
+        </>
     );
 };
 
