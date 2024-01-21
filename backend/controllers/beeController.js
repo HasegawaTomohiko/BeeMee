@@ -74,6 +74,36 @@ exports.getBee = async (req,res) => {
 	}
 }
 
+exports.searchBee = async (req,res) => {
+	try {
+		const searchQuery = req.query.q;
+		const limit = parseInt(req.query.limit) || 30;
+		const skip = parseInt(req.query.skip) || 0;
+
+		let bees;
+
+		if(searchQuery[0] === '@'){
+			const beeId = searchQuery.slice(1);
+			bees = await Bees.find({
+				beeId : { $regex : beeId, $options: 'i'}
+			})
+			.limit(limit)
+			.skip(skip);
+		}else{
+			bees = await Bees.find({
+				beeName: { $regex : searchQuery, $options: 'i'}
+			})
+			.limit(limit)
+			.skip(skip);
+		}
+
+		res.status(200).json(bees)
+	} catch (error) {
+		console.log(error);
+		res.status(500).json({error : 'Internal Server Error'});
+	}
+}
+
 /**
  * 新規ユーザ登録処理
  * @param {*} req 
@@ -290,15 +320,15 @@ exports.getFollower = async (req,res) => {
 
 exports.getJoinBeehive = async (req,res) => {
 	try{
-		const page = parseInt(req.query.page) || 1;
-		const limit = 30;
-		const skip = (page - 1) * limit;
+		// const page = parseInt(req.query.page) || 1;
+		// const limit = 30;
+		// const skip = (page - 1) * limit;
 		const beeId = req.params.beeId;
 
 		const bee = await Bees.find({ beeId : beeId },'beeId _id joinBeehive').populate({
 			path : 'joinBeehive',
 			select : 'beehiveId beehiveName description beehiveIcon beehiveHeader',
-			options : { skip : skip, limit : limit }
+			// options : { skip : skip, limit : limit }
 		});
 
 		if (!bee) return res.status(404).json({ error : 'Bee Not Found' });
@@ -393,4 +423,15 @@ exports.updateBlock = async (req,res) => {
 		console.error(error);
 		res.status(500).json({error : 'Internal Server Error'});
 	}
+}
+
+
+function checkJwtToken(token){
+    try {
+        const verify = jwt.verify(token, 'beemee');
+        return verify;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 }

@@ -2,6 +2,7 @@ const multer = require("multer");
 const uuid = require("uuid").v4;
 const fs = require("fs");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 const Honeycombs = require("../models/honeycomb");
 const Beehives = require("../models/beehive");
 const Bees = require("../models/bee");
@@ -24,11 +25,22 @@ const upload = multer({ storage : storage });
  */
 exports.getHoneycombList = async (req,res) => {
 	try{
+
+		const  authHeader = req.headers.authorization;
+		
+		if(!authHeader) return res.status(401).json({ error : 'You dont have Session' });
+
+		const token = authHeader.split(' ')[1];
+
+		const sessionBeeId = checkJwtToken(token).beeId;
+
+		if(!sessionBeeId) return res.status(401).json({ error : 'セッションIDが存在していません'});
+
 		const page = req.query.page || 1;
 		const limit = 30;
 		const skip = (page - 1) * limit;
 		const beehiveId = req.params.beehiveId;
-		const beeId = req.session.beeId;
+		const beeId = sessionBeeId;
 
 		//beehiveの_idを取得
 		const beehive = await Beehives.findOne({ beehiveId : beehiveId },'beehiveId _id');
@@ -65,7 +77,9 @@ exports.getHoneycombList = async (req,res) => {
 				honeyCount : honeycomb.honey.length,
 				isSendHoney : bee.sendHoney.includes(honeycomb._id)
 			});
-		})
+		});
+
+		console.log(List);
 
 		res.status(200).json(List);
 
@@ -74,7 +88,6 @@ exports.getHoneycombList = async (req,res) => {
 		res.status(500).json({ error : 'Internal Server Error'});
 	}
 }
-
 
 //未確認で現在完了進行形
 exports.getHotHoneycombsList = async (req,res) => {
@@ -119,14 +132,14 @@ exports.getHotHoneycombsList = async (req,res) => {
 						honeyCount: honeycomb.honey.length,
 						isSendHoney: bee.sendHoney.includes(honeycomb._id)
 				});
-		})
+		});
 
 		res.status(200).json(List);
 
-} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: 'Internal Server Error' });
-}
+	} catch (error) {
+			console.error(error);
+			res.status(500).json({ error: 'Internal Server Error' });
+	}
 }
 
 /**
@@ -394,4 +407,15 @@ exports.updateHoney = async (req,res) => {
 		console.error(error);
 		res.status(500).json({ error : 'Internal Server Error'});
 	}
+}
+
+
+function checkJwtToken(token){
+    try {
+        const verify = jwt.verify(token, 'beemee');
+        return verify;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 }

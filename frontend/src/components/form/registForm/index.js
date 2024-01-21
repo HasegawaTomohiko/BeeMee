@@ -3,10 +3,8 @@ import { TextField, Button, Typography, Container, Box, CssBaseline, Grid, Link,
 import Cropper from 'react-easy-crop';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
-import getCroppedImg from '../../../util/cropImage';
-import { width } from '@mui/system';
+import getCroppedImg from '@/util/cropImage';
 import { useRouter } from 'next/router';
-import { Cookie } from '@mui/icons-material';
 import Cookies from 'js-cookie';
 
 const RegistForm = () => {
@@ -76,6 +74,7 @@ const RegistForm = () => {
                 croppedAreaPixelsIcon,
             );
             setBeeIcon(croppedImage);
+            console.log(beeIcon);
         } catch (e) {
             console.error(e);
         }
@@ -88,10 +87,17 @@ const RegistForm = () => {
                 croppedAreaPixelsHeader,
             );
             setBeeHeader(croppedImage);
+            console.log(beeHeader);
         } catch (e) {
             console.error(e);
         }
     },[croppedAreaPixelsHeader, zoomHeader]);
+
+    const blobUrlToFile = async (blobUrl, fileName) => {
+        const res = await fetch(blobUrl);
+        const blob = await res.blob();
+        return new File([blob], fileName, { type: blob.type });
+    }
     
     const handleRegister = async () => {
 
@@ -109,11 +115,24 @@ const RegistForm = () => {
             registData.append('password',password);
             registData.append('email',email);
             registData.append('beeName',beeName);
-            registData.append('beeIcon',beeIcon);
-            registData.append('beeHeader',beeHeader);
 
+            if(beeIcon) {
+                registData.append('beeIcon', await blobUrlToFile(beeIcon, 'beeIcon.png'));
+            }else{
+                registData.append('beeIcon', null);
+            }
 
-            const res = await axios.post('http://localhost:4000/bee/',registData);
+            if(beeHeader) {
+                registData.append('beeHeader', await blobUrlToFile(beeHeader, 'beeHeader.png'));
+            }else{
+                registData.append('beeHeader', null);
+            }
+
+            const res = await axios.post('http://localhost:4000/bee/',registData,{
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
             console.log(res.data);
 
@@ -285,7 +304,7 @@ const RegistForm = () => {
                                     <div {...getRootPropsHeader()} >
                                         <input {...getInputPropsHeader()}/>
                                         { beeHeader ? (
-                                            <img src={beeHeader} style={{width: '300px', height: '100px', margin: '10px'}} />
+                                            <img src={beeHeader} style={{width: '300px', height: '100px'}} />
                                         ) : (
                                             <div style={{ backgroundColor: 'gray', width: '300px', height: '100px'}}>
                                                 {isDragHeader && (
@@ -307,7 +326,7 @@ const RegistForm = () => {
                 <Modal
                     open={modalOpen}
                 >
-                    <Box sx={{ width: 400, height: 800, padding : 2}}>
+                    <Box sx={{ width: "400px", height: "800px", padding : "5px"}}>
                         <div>
                             {currentImage === 'icon' && beeIconUrl && (
                                 <Cropper

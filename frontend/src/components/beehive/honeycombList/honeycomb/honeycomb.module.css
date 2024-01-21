@@ -1,0 +1,17 @@
+.hexagon_wrapper{
+  display: flex;
+  justify-content: center;
+}
+
+.hexagon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 250px;
+    background-color: #ff6600;
+    aspect-ratio: 200 / 173;
+    clip-path: polygon(25%, 0%, 75%, 0%, 100%, 50%, 75%, 100%, 25%, 100%, 0%, 50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}

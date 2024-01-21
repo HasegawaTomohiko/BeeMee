@@ -18,6 +18,9 @@ router.patch("/",beeController.updateBee);
  */
 router.delete("/",beeController.deleteBee);
 
+//ユーザ検索機能
+router.get("/search",beeController.searchBee);
+
 /**
  * ユーザ情報取得処理
  */

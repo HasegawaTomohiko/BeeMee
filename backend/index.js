@@ -76,7 +76,7 @@ server.use(body.urlencoded({extended: false}));
 // });
 
 //ルーティング
-server.use("/media",express.static(path.join(__dirname, "/app/media")));
+server.use("/media",express.static(path.join(__dirname, "/media")));
 server.use("/bee",beeRoute);
 server.use("/beehive",beehiveRoute);
 server.use("/auth",authRoute);

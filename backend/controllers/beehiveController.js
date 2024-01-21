@@ -2,6 +2,7 @@ const multer = require("multer");
 const uuid = require("uuid").v4;
 const fs = require("fs");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 const Beehives = require("../models/beehive");
 const Honeycombs = require("../models/honeycomb");
 const Bees = require("../models/bee");
@@ -39,10 +40,48 @@ exports.getBeehive = async (req,res) => {
     }
 }
 
+exports.searchBeehive = async (req,res) =>  {
+    try {
+        const searchQuery = req.query.q;
+        const limit = parseInt(req.query.limit) || 30;
+        const skip = parseInt(req.query.skip) || 0;
+
+        let beehives;
+
+        if(searchQuery[0] === '#') {
+            const beehiveId = searchQuery.slice(1);
+            beehives = await Beehives.find({
+                beehiveId : { $regex : beehiveId, options: 'i'}
+            })
+            .limit(limit)
+            .skip(skip);
+        }else{
+            beehives = await Beehives.find({
+                beehiveName: { $regex : searchQuery, $options: 'i'}
+            }).limit(limit).skip(skip);
+        }
+
+        res.status(200).json(beehives);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error : 'Internal Server Error'});
+    }
+}
+
 exports.createBeehive = async (req,res) => {
 
-    if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在しません' });
+	const authHeader = req.headers.authorization;
+
+	if(!authHeader) return res.status(401).json({ error : 'You dont have Session' });
+
+	const token = authHeader.split(' ')[1];
+
+    const sessionBeeId = checkJwtToken(token).beeId;
+
+    
+    if(!sessionBeeId) return res.status(401).json({ error : 'セッションIDが存在しません' });
     upload.fields([{name : 'beehiveIcon',maxCount : 1}, {name : 'beehiveHeader',maxCount : 1}])(req,res, async function (err){
+
 
         if(err) {
             console.error(err);
@@ -53,7 +92,7 @@ exports.createBeehive = async (req,res) => {
             const beehiveId = req.body.beehiveId;
             const beehiveName = req.body.beehiveName;
             const description = req.body.description;
-            const beeId = req.session.beeId;
+            const beeId = sessionBeeId;
             
             //競合処理及び参照処理
             const duplicateBeehive = await Beehives.findOne({ beehiveId : beehiveId },'beehiveId _id');
@@ -317,5 +356,15 @@ exports.updateBlockBee = async (req,res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error : 'Internal Server Error' });
+    }
+}
+
+function checkJwtToken(token){
+    try {
+        const verify = jwt.verify(token, 'beemee');
+        return verify;
+    } catch (error) {
+        console.error(error);
+        return false;
     }
 }

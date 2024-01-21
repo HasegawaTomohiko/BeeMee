@@ -6,6 +6,9 @@ const replyController = require("../controllers/replyController");
 //新規のBeehiveを作成
 router.post("/",beehiveController.createBeehive);
 
+//検索機能
+router.get("/search",beehiveController.searchBeehive);
+
 //Beehiveの情報を取得
 router.get("/:beehiveId",beehiveController.getBeehive);
 

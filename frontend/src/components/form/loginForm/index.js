@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { TextField, Box, Container, CssBaseline, Typography, Grid, Link, Button } from "@mui/material";
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import Cookies from "js-cookie";
 
 const LoginForm = () => {
   const [beeId, setBeeId] = useState('');
