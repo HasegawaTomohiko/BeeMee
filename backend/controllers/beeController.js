@@ -3,6 +3,7 @@ const multer = require("multer");
 const uuid = require("uuid").v4;
 const fs = require("fs");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 const Bees = require("../models/bee");
 const BeeAuth = require("../models/beeAuth");
 

@@ -9,14 +9,8 @@ import BeehiveComponent from '@/components/beehive';
 
 export default function beehive () {
 
-  const isMounted = useRef(true);
-
   useEffect(() => {
     checkSession();
-
-    return () => {
-      isMounted.current = false;
-    }
   },[]);
   
   return (

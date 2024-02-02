@@ -2,11 +2,11 @@ const multer = require("multer");
 const uuid = require("uuid").v4;
 const fs = require("fs");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 const Replys = require("../models/reply");
 const Beehives = require("../models/beehive");
 const Bees = require("../models/bee");
 const Honeycombs = require("../models/honeycomb");
-const bee = require("../models/bee");
 
 const storage = multer.diskStorage({
 	destination: function (req,file, cb) {

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import Header from '@/components/header';
-import { Typography } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import checkSession from '@/api/checkSession';
+import SideNavigation from '@/components/sideNavigation';
 import axios from 'axios';
 
 export default function bee () {
@@ -47,15 +48,19 @@ export default function bee () {
 
   return (
     <>
-      <Header />
-      {
-        beeData && (
-          <>
-            <Typography>beeId : {beeData.beeId}</Typography>
-            <Typography>beeName : {beeData.beeName}</Typography>
-          </>
-        )
-      }
+      	<Header />
+		<Box sx={{ display : 'flex', justifyContent: 'center'}}>        
+			<SideNavigation />
+			<Box sx={{ width: '1200px', height: '80vh',  margin: '20px'}}>
+				<h1>User Information</h1>
+				{beeData && (
+					<>
+						<Typography>id : {beeData.beeId}</Typography>
+						<Typography>beeId : {beeData.beeName}</Typography>
+					</>
+				)}
+			</Box>
+		</Box>
     </>
   );
 }

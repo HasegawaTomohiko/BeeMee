@@ -1,9 +1,9 @@
 import { Box } from "@mui/system";
-import { useEffect, useState } from "react";
-import Honeycomb from "./honeycombList/honeycomb";
+import { useEffect, useState, useRef } from "react";
 import HoneycombList from "./honeycombList";
 import { useRouter } from "next/router";
 import axios from "axios";
+import { Typography } from "@mui/material";
 
 export default function BeehiveComponent() {
 
@@ -15,46 +15,32 @@ export default function BeehiveComponent() {
     const [ page, setPage ] = useState(1);
     const [ loading, setLoading ] = useState(false);
     const [ hasMore, setHasMore ] = useState(true);
-
-
+    const isMounted = useRef(false);
 
     useEffect(() => {
-        const fetchBeehive = async () => {
-            try {
-                const beehiveData = await axios.get(`http://localhost:4000/beehive/${beehiveId}`);
-                setBeehive(beehiveData.data);
-            } catch (error) {
-                console.log(error);
-            }
+        return () => {
+            isMounted.current = true;
         }
-        fetchBeehive();
+    });
+
+    useEffect(() => {
+        if(beehiveId){
+            const fetchBeehive = async () => {
+                try {
+                    const beehiveData = await axios.get(`http://localhost:4000/beehive/${beehiveId}`);
+                    setBeehive(beehiveData.data);
+                } catch (error) {
+                    console.log("useEffect's beehiveId error:" + beehiveId);
+                    console.log(error);
+                }
+            }
+            
+            fetchBeehive();
+        }
     },[beehiveId]);
 
-    // useEffect(() => {
-    //     console.log(beehive);
-    //     if(beehive === undefined) return;
-    //     try {
-    //         const fetchHoneycombs = async () => {
-    //             setLoading(true);
-    //             const honeycombData = await axios.get(`http://localhost:4000/beehive/${beehive.beehiveId}/honeycomb`,{
-    //                 params: {
-    //                     page: page
-    //                 },
-    //                 headers: {
-    //                     Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`
-    //                 }
-    //             });
-    //             setHoneycombs((prev) => [...prev, ...honeycombData.data]);
-    //             setPage((prev) => prev + 1);
-    //             setLoading(false);
-    //         }
-    //         fetchHoneycombs();
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // },[beehive]);
-
     useEffect(() => {
+        
         const fetchHoneycombs = async () => {
             if (!beehive.beehiveId) return; // Add this line
             setLoading(true);
@@ -70,17 +56,31 @@ export default function BeehiveComponent() {
                 setHoneycombs((prev) => [...prev, ...honeycombData.data]);
                 setPage((prev) => prev + 1);
             } catch (error) {
+                console.log("useEffect's beehive error:" + beehive.beehiveId);
                 console.log(error);
             } finally {
                 setLoading(false);
             }
         }
+
         fetchHoneycombs();
-    }, [beehive]); // Only re-run the effect if beehive changes
+
+    },[beehive])
+
+    useEffect(() => {
+        console.log(honeycombs);
+    },[honeycombs]);
+
 
     return (
         <Box sx={{ width: '1200px', height: '80vh',  margin: '20px'}}>
-            <HoneycombList/>
+            <Typography>{beehive.beehiveId}</Typography>
+            {honeycombs.map((honeycomb, index) => {
+                return (
+                    <Typography>{honeycomb._id}</Typography>
+                )
+            })}
+            <HoneycombList />
         </Box>
     );
 }
