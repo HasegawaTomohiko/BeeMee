@@ -16,6 +16,10 @@ export default function HoneycombList() {
     const beehiveId = router.query.beehiveId;
     const isMounted = useRef(true);
 
+    useEffect(() => {
+
+    },[]);
+
     const handleScroll = (event) => {
         const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
         if (scrollHeight - scrollTop === clientHeight) {
@@ -34,7 +38,33 @@ export default function HoneycombList() {
         {text : 8},
         {text : 9},
         {text : 10},
-        {text : 11}
+        {text : 11},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
+        {text : 10},
     ]
 
     return (
@@ -43,26 +73,27 @@ export default function HoneycombList() {
                 sx={{
                     display: 'grid',
                     flexWrap: 'wrap',
-                    width: '100%',
-                    gridTemplateColumns: 'repeat(5, 2fr)',
+                    width: '1200px',
+                    height: '95%',
+                    gridTemplateColumns: 'repeat(5, 1fr)',
                     gridGap: '0',
-                    "& > :nth-child(2)" : {
-                        marginRight: '-50px',
-                        marginTop : '100px',
-                    },
-                    "& > :nth-child(4)" : {
-                        marginRight: '-50px',
-                        marginTop : '100px',
-                    },
+                    overflow: 'auto',
+                    // "& > :nth-child(2)" : {
+                    //     position: 'relative',
+                    //     top : '100px',
+                    // },
+                    // "& > :nth-child(4)" : {
+                    //     position: 'relative',
+                    //     top : '100px',
+                    // },
                 }}
                 onScroll={handleScroll}
             >
-                <Honeycomb />
-                <Honeycomb />
-                <Honeycomb />
-                <Honeycomb />
-                <Honeycomb />
-                <Honeycomb />
+                {
+                    honeycombList.map((honeycomb,index) => {
+                         return <Honeycomb honeycombData={honeycomb.text} index={index} key={index}/>
+                    })
+                }
             </Box>
         </>
     )

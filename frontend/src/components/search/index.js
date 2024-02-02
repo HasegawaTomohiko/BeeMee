@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
-import { Input, Tabs, Tab, Typography, List, ListItem, ListItemText, Box } from "@mui/material";
+import { Input, Tabs, Tab, Typography, List, ListItem, ListItemText, Box, Pagination } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -43,11 +43,11 @@ export default function SearchBox() {
             }
         }
 
-        if(searchGenre === 'Beehive'){
+        if(searchGenre === 'Beehive' && !(searchString[0] === '#' && searchString.length === 1)){
             SearchBeehive();
         }
 
-        if(searchGenre === 'Bee'){
+        if(searchGenre === 'Bee' && !(searchString[0] === '@' && searchString.length === 1)){
             SearchBee();
         }
     },[searchGenre,searchString]);
@@ -113,6 +113,7 @@ export default function SearchBox() {
                         <Typography>なにもないようです...</Typography>
                     )}
                 </List>
+                <Pagination count={10}></Pagination>
             </Box>
         </Box>
     )

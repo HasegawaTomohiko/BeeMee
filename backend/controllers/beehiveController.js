@@ -51,7 +51,7 @@ exports.searchBeehive = async (req,res) =>  {
         if(searchQuery[0] === '#') {
             const beehiveId = searchQuery.slice(1);
             beehives = await Beehives.find({
-                beehiveId : { $regex : beehiveId, options: 'i'}
+                beehiveId : { $regex : beehiveId, $options: 'i'}
             })
             .limit(limit)
             .skip(skip);
