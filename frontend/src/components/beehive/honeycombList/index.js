@@ -3,69 +3,53 @@ import Honeycomb from "./honeycomb";
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-import styled from "@mui/material";
 
-export default function HoneycombList() {
-
-    const [ beehive, setBeehive] = useState({});
-    const [ honeycombs, setHoneycombs ] = useState([]);
-    const [ page, setPage ] = useState(1);
-    const [ loading, setLoading ] = useState(false);
-    const [ hasMore, setHasMore ] = useState(true);
+export default function HoneycombList({ honeycombData,beehiveId }) {
+    const [beehive, setBeehive] = useState({});
+    const [honeycombs, setHoneycombs] = useState([]);
+    const [page, setPage] = useState(1); // 初期値を1に設定
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
     const router = useRouter();
-    const beehiveId = router.query.beehiveId;
-    const isMounted = useRef(true);
 
     useEffect(() => {
+        if (beehiveId) {
+            fetchHoneycombs();
+        }
+    }, [beehiveId]);
 
-    },[]);
+    const fetchHoneycombs = async () => {
+        if (!beehiveId) return;
+        setLoading(true);
+        try {
+            const honeycombData = await axios.get(`http://localhost:4000/beehive/${beehiveId}/Honeycomb`, {
+                params: {
+                    page: page,
+                },
+                headers: {
+                    Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`,
+                },
+            });
+
+            setHoneycombs((prev) => [...prev, ...honeycombData.data]);
+            setPage((prev) => prev + 1);
+            if (honeycombData.data.length === 0) {
+                console.log("no more honeycombs");
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleScroll = (event) => {
         const { scrollTop, clientHeight, scrollHeight } = event.currentTarget;
         if (scrollHeight - scrollTop === clientHeight) {
             fetchHoneycombs();
         }
-    }
-
-    const honeycombList = [
-        {text : 1},
-        {text : 2},
-        {text : 3},
-        {text : 4},
-        {text : 5},
-        {text : 6},
-        {text : 7},
-        {text : 8},
-        {text : 9},
-        {text : 10},
-        {text : 11},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-        {text : 10},
-    ]
+    };
 
     return (
         <>
@@ -78,23 +62,13 @@ export default function HoneycombList() {
                     gridTemplateColumns: 'repeat(5, 1fr)',
                     gridGap: '0',
                     overflow: 'auto',
-                    // "& > :nth-child(2)" : {
-                    //     position: 'relative',
-                    //     top : '100px',
-                    // },
-                    // "& > :nth-child(4)" : {
-                    //     position: 'relative',
-                    //     top : '100px',
-                    // },
                 }}
                 onScroll={handleScroll}
             >
-                {
-                    honeycombList.map((honeycomb,index) => {
-                         return <Honeycomb honeycombData={honeycomb.text} index={index} key={index}/>
-                    })
-                }
+                {honeycombs.map((honeycomb, index) => (
+                    <Honeycomb honeycombData={honeycomb} index={index} key={index} />
+                ))}
             </Box>
         </>
-    )
+    );
 }

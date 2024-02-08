@@ -20,16 +20,12 @@ const LoginForm = () => {
       const res = await axios.post('http://localhost:4000/auth/',loginData);
       const { jwtToken, bee } = res.data;
 
-      console.log(res.data);
-
       if(res.data.beeId) {
 
         sessionStorage.setItem('jwtToken', jwtToken);
         sessionStorage.setItem('beeId', res.data.beeId);
 
         axios.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
-
-        console.log('go to home');
         router.push('/home');
         
       }else{
