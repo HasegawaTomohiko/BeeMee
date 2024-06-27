@@ -1,7 +1,14 @@
+import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
 import styles from "./honeycomb.module.css";
 
 export default function Honeycomb ({honeycombData, index}) {
+
+    const [ honeycomb, setHoneycomb ] = useState({});
+
+    useEffect(() => {
+        setHoneycomb(honeycombData);
+    },[honeycombData]);
 
     const getStyled = () => {
         switch (index % 5) {
@@ -39,7 +46,7 @@ export default function Honeycomb ({honeycombData, index}) {
                 fontSize: '16px',
                 fontWeight: 'bold',
             }}>
-                <Typography>{honeycombData + " " +  index}</Typography>
+                <Typography>{honeycomb.title}</Typography>
             </Box>
         </Box>
     );

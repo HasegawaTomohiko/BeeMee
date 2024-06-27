@@ -52,10 +52,6 @@ export default function SearchBox() {
         }
     },[searchGenre,searchString]);
 
-    useEffect(() => {
-        console.log(result);
-    },[result]);
-
     return (
         <Box sx={{width: '1200px', flexDirection: 'column',  alignItems: 'center',  display: 'flex', height: '80vh', margin: '20px'}}>
             <Box sx={{

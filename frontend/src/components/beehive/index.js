@@ -5,10 +5,10 @@ import { useRouter } from "next/router";
 import axios from "axios";
 import { Typography } from "@mui/material";
 
-export default function BeehiveComponent() {
+export default function BeehiveComponent({ beehiveId }) {
 
     const router = useRouter();
-    const beehiveId = router.query.beehiveId;
+    //const beehiveId = router.query.beehiveId;
 
     const [ beehive, setBeehive ] = useState({});
     const [ honeycombs, setHoneycombs ] = useState([]);
@@ -17,57 +17,55 @@ export default function BeehiveComponent() {
     const [ hasMore, setHasMore ] = useState(true);
     const isMounted = useRef(false);
 
+    const fetchBeehive = async () => {
+        try {
+            const beehiveData = await axios.get(`http://localhost:4000/beehive/${beehiveId}`);
+            setBeehive(beehiveData.data);
+        } catch (error) {
+            console.log("useEffect's beehiveId error:" + beehiveId);
+            console.log(error);
+        }
+    }
+    const fetchHoneycombs = async () => {
+        console.log("run fetchHoneycombs");
+        if (!beehiveId) return; // Add this line
+        setLoading(true);
+        try {
+            const honeycombData = await axios.get(`http://localhost:4000/beehive/${beehiveId}/Honeycomb`,{
+                params: {
+                    page: page
+                },
+                headers: {
+                    Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`
+                }
+            });
+            setHoneycombs((prev) => [...prev, ...honeycombData.data]);
+            setPage((prev) => prev + 1);
+        } catch (error) {
+            console.log("useEffect's beehive error:" + beehive.beehiveId);
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
         return () => {
             isMounted.current = true;
         }
-    });
+    },[]);
 
     useEffect(() => {
+        console.log(beehiveId);
         if(beehiveId){
-            const fetchBeehive = async () => {
-                try {
-                    const beehiveData = await axios.get(`http://localhost:4000/beehive/${beehiveId}`);
-                    setBeehive(beehiveData.data);
-                } catch (error) {
-                    console.log("useEffect's beehiveId error:" + beehiveId);
-                    console.log(error);
-                }
-            }
-            
             fetchBeehive();
+            fetchHoneycombs();
         }
-    },[beehiveId]);
+    },[router.query.beehiveId]);
+
 
     useEffect(() => {
-        
-        const fetchHoneycombs = async () => {
-            if (!beehive.beehiveId) return; // Add this line
-            setLoading(true);
-            try {
-                const honeycombData = await axios.get(`http://localhost:4000/beehive/${beehive.beehiveId}/Honeycomb`,{
-                    params: {
-                        page: page
-                    },
-                    headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('jwtToken')}`
-                    }
-                });
-                setHoneycombs((prev) => [...prev, ...honeycombData.data]);
-                setPage((prev) => prev + 1);
-            } catch (error) {
-                console.log("useEffect's beehive error:" + beehive.beehiveId);
-                console.log(error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchHoneycombs();
-
-    },[beehive])
-
-    useEffect(() => {
+        console.log("beehiveKKKKKKKKKKKKK");
         console.log(honeycombs);
     },[honeycombs]);
 
@@ -75,12 +73,12 @@ export default function BeehiveComponent() {
     return (
         <Box sx={{ width: '1200px', height: '80vh',  margin: '20px'}}>
             <Typography>{beehive.beehiveId}</Typography>
-            {honeycombs.map((honeycomb, index) => {
+            {/* {honeycombs.map((honeycomb, index) => {
                 return (
                     <Typography>{honeycomb._id}</Typography>
                 )
-            })}
-            <HoneycombList />
+            })} */}
+            <HoneycombList honeycombData={honeycombs} beehiveId={beehive.beehiveId}/>
         </Box>
     );
 }

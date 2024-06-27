@@ -74,7 +74,6 @@ const RegistForm = () => {
                 croppedAreaPixelsIcon,
             );
             setBeeIcon(croppedImage);
-            console.log(beeIcon);
         } catch (e) {
             console.error(e);
         }
@@ -87,7 +86,6 @@ const RegistForm = () => {
                 croppedAreaPixelsHeader,
             );
             setBeeHeader(croppedImage);
-            console.log(beeHeader);
         } catch (e) {
             console.error(e);
         }
@@ -134,10 +132,7 @@ const RegistForm = () => {
                 }
             });
 
-            console.log(res.data);
-
             if(res.data) {
-                console.log('Created!!!');
                 const loginData = {
                     beeId : beeId,
                     password : password
@@ -145,16 +140,12 @@ const RegistForm = () => {
                 const loginRes = await axios.post('http://localhost:4000/auth/',loginData);
                 const { jwtToken, bee } = loginRes.data;
 
-                console.log(loginRes.data);
-
                 if(res.data.beeId){
 
                     sessionStorage.setItem('jwtToken', jwtToken);
                     sessionStorage.setItem('beeId', loginRes.data.beeId);
 
                     axios.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
-
-                    console.log('goto home');
 
                     router.push('/home');
                 }
