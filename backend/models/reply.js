@@ -10,4 +10,6 @@ const ReplySchema = new Schema({
   {timestamps : true}
 );
 
-module.exports = mongoose.model('Replys',ReplySchema);
+const Replys = mongoose.model('Replys',ReplySchema);
+
+module.exports = Replys;

@@ -9,9 +9,12 @@ const BeehiveSchema = new Schema({
   beehiveHeader: { type:String },
   queenBee: [{ type:Schema.Types.ObjectId, ref:'Bees'}],
   joinedBee: [{ type:Schema.Types.ObjectId, ref:'Bees'}],
+  joinedBeeCount: { type: Number, default: 0 },
   blockBee: [{type:Schema.Types.ObjectId, ref:'Bees'}]
 },{
   timestamps: false,
 });
 
-module.exports = mongoose.model('Beehives',BeehiveSchema);
+const Beehives = mongoose.model('Beehives',BeehiveSchema);
+
+module.exports = Beehives;

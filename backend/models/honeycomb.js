@@ -8,9 +8,13 @@ const HoneycombSchema = new Schema({
   posts: { type: String, required: true, max: 2000 },
   media: [{ type: String }],
   honey: [{ type: Schema.Types.ObjectId, ref: 'Bees'}],
+  honeyCount: { type: Number, default: 0 },
   reply: [{ type: Schema.Types.ObjectId, ref: 'Replys'}],
+  replyCount: { type: Number, default: 0 }
 },{
   timestamps:true
 });
 
-module.exports =  mongoose.model('Honeycombs', HoneycombSchema);
+const Honeycombs = mongoose.model('Honeycombs', HoneycombSchema);
+
+module.exports = Honeycombs ;

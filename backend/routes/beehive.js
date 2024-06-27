@@ -89,21 +89,4 @@ router.patch("/:beehiveId/Honeycomb/:honeycombId/Reply/:replyId",replyController
  */
 router.delete("/:beehiveId/Honeycomb/:honeycombId/Reply/:replyId",replyController.deleteReply);
 
-function verifyJwt(req,res,next) {
-    const authHeader = req.headers.authroization;
-
-    if (authHeader) {
-        const token = authHeader.split(' ')[1];
-        jwt.verify(token, 'beemee', (err, bee) => {
-            if (err) {
-                return res.sendStatus(403);
-            }
-            req.bee = bee;
-            next();
-        });
-    }else {
-        res.sendStatus(401);
-    }
-}
-
 module.exports = router;
