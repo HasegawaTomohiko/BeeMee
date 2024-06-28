@@ -143,7 +143,7 @@ export default function BeehiveCreateForm() {
             }else{
                 beehiveData.append('beehiveHeader', null);
             }
-            
+
             const jwtToken = sessionStorage.getItem('jwtToken');
 
             axios.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;

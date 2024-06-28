@@ -2,9 +2,10 @@ var router = require("express").Router();
 const beehiveController = require("../controllers/beehiveController");
 const honeycombController = require("../controllers/honeycombController");
 const replyController = require("../controllers/replyController");
+const { authenticateJwt, authenticateLocal } = require("../middlewares/passport");
 
 //新規のBeehiveを作成
-router.post("/",beehiveController.createBeehive);
+router.post("/", authenticateJwt, beehiveController.createBeehive);
 
 //検索機能
 router.get("/search",beehiveController.searchBeehive);
@@ -13,26 +14,26 @@ router.get("/search",beehiveController.searchBeehive);
 router.get("/:beehiveId",beehiveController.getBeehive);
 
 //Beehiveの情報を編集(自身のIDがqueenBeeリストにある場合のみ)
-router.patch("/:beehiveId",beehiveController.updateBeehive);
+router.patch("/:beehiveId",authenticateJwt, beehiveController.updateBeehive);
 
 //Beehiveの情報を削除(自身のIDがqueenBeeリストにある場合のみ)
-router.delete("/:beehiveId",beehiveController.deleteBeehive);
+router.delete("/:beehiveId",authenticateJwt, beehiveController.deleteBeehive);
 
 //BeehiveのQueenBee(管理者のリスト)を取得
-router.get("/:beehiveId/queenBee",beehiveController.getQueen);
+router.get("/:beehiveId/queenBee", beehiveController.getQueen);
 
 //新たに管理者を追加する(自身のsessionのbeeidがqueenBeeリストに存在している場合に追加可能)
-router.patch("/:beehiveId/queenBee/:queenBeeId",beehiveController.updateQueen);
+router.patch("/:beehiveId/queenBee/:queenBeeId",authenticateJwt, beehiveController.updateQueen);
 
 //参加しているBeeリストを取得
 router.get("/:beehiveId/joinedBee",beehiveController.getJoinedBee);
 
 //Bee本人のみがjoinedBeeに追加、削除できる
-router.patch("/:beehiveId/joinedBee",beehiveController.updateJoinedBee);
+router.patch("/:beehiveId/joinedBee",authenticateJwt, beehiveController.updateJoinedBee);
 
-router.get("/:beehiveId/block",beehiveController.getBlockBee);
+router.get("/:beehiveId/block",authenticateJwt, beehiveController.getBlockBee);
 
-router.patch("/:beehiveId/block/:blockBeeId",beehiveController.updateBlockBee);
+router.patch("/:beehiveId/block/:blockBeeId",authenticateJwt, beehiveController.updateBlockBee);
 
 /**
  * beehiveのHoneycombリストを取得(インフィニティットスクロールを採用)
@@ -42,7 +43,7 @@ router.get("/:beehiveId/Honeycomb",honeycombController.getHoneycombList);
 /**
  * beehiveに新たなHoneycombリストを作成
  */
-router.post("/:beehiveId/Honeycomb",honeycombController.createHoneycomb);
+router.post("/:beehiveId/Honeycomb",authenticateJwt, honeycombController.createHoneycomb);
 
 /**
  * beehiveのHoneycombの情報を取得

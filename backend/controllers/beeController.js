@@ -7,6 +7,7 @@ const upload = require("../middlewares/multer");
 
 exports.getBee = async (req,res) => {
 	try { 
+
 		const bee = await Bees.findOne({ beeId : req.params.beeId },'_id beeId beeName description location customUrl beeIcon beeHeader followCount followerCount joinBeehiveCount sendHoneyCount');
 		if (!bee) return res.status(404).json({ message : 'Bee not found'});
 
@@ -130,7 +131,7 @@ exports.updateBee = async (req,res) => {
 		}
 
 		if (req.files.beeHeader && req.files.beeHeader.length > 0) {
-			if (bee.beeHeader) fs.unlinkSync(path.join('/app/path',bee.beeHeader));
+			if (bee.beeHeader) fs.unlinkSync(path.join('/app/media',bee.beeHeader));
 			beeHeaderName = req.files.beeHeader[0].filename;
 		}
 
@@ -166,7 +167,7 @@ exports.getFollow = async (req,res) => {
 		const beeId = req.params.beeId;
 		const bee = await Bees.find({ beeId : beeId },'beeId _id followCount follow').populate({
 			path: 'follow',
-			select : 'beeId beeName description beeIcon beeHeader',
+			select : '_id beeId beeName description beeIcon beeHeader followCount followerCount',
 			options : { skip : skip, limit : limit },
 		});
 
@@ -224,7 +225,7 @@ exports.getFollower = async (req,res) => {
 
 		const bee = await Bees.find({ beeId : beeId },'beeId _id followerCount follower').populate({
 			path : 'follower',
-			select : 'beeId beeName description beeIcon beeHeader',
+			select : 'beeId beeName description beeIcon beeHeader followCount followerCount',
 			options : { skip : skip, limit : limit },
 		});
 

@@ -1,46 +1,17 @@
-const multer = require("multer");
-const uuid = require("uuid").v4;
 const fs = require("fs");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const Honeycombs = require("../models/honeycomb");
 const Beehives = require("../models/beehive");
 const Bees = require("../models/bee");
+const upload = require("../middlewares/multer");
 
-const storage = multer.diskStorage({
-	destination: function (req,file, cb) {
-		cb(null, '/app/media');
-	},
-	filename: function (req,file,cb){
-		cb(null,`${uuid()}.${file.mimetype.split('/')[1]}`);
-	}
-});
-
-const upload = multer({ storage : storage });
-
-/**
- * Honeycombリストを取得(インフィニティットスクロール)
- * @param {*} req 
- * @param {*} res 
- */
 exports.getHoneycombList = async (req,res) => {
 	try{
-
-		const  authHeader = req.headers.authorization;
-		
-		if(!authHeader) return res.status(401).json({ error : 'You dont have Session' });
-
-		const token = authHeader.split(' ')[1];
-
-		const sessionBeeId = checkJwtToken(token).beeId;
-
-		if(!sessionBeeId) return res.status(401).json({ error : 'セッションIDが存在していません'});
-
 		const page = req.query.page || 1;
 		const limit = 30;
 		const skip = (page - 1) * limit;
 		const beehiveId = req.params.beehiveId;
-		const beeId = sessionBeeId;
 
 		//beehiveの_idを取得
 		const beehive = await Beehives.findOne({ beehiveId : beehiveId },'beehiveId _id');
@@ -48,8 +19,6 @@ exports.getHoneycombList = async (req,res) => {
 
 		if(!beehive) return res.status(404).json({ error : 'Beehive Not Found'});
 		//beehive._idを使用してHoneycombの_beehiveIdと一致しているものをページネーション形式で取得する。
-
-		if(!bee) return res.status(403).json({ error : 'Bee Not Found. You must Login' });
 
 		const honeycombList = await Honeycombs.find({ _beehiveId : beehive._id, _beeId : { $nin : bee.block }})
 		.select('_id title media honey reply')
@@ -78,8 +47,6 @@ exports.getHoneycombList = async (req,res) => {
 				isSendHoney : bee.sendHoney.includes(honeycomb._id)
 			});
 		});
-
-		console.log(List);
 
 		res.status(200).json(List);
 
@@ -314,11 +281,6 @@ exports.updateHoneycomb = async (req,res) => {
 	});
 }
 
-/**
- * Honeycombの削除
- * @param {*} req 
- * @param {*} res 
- */
 exports.deleteHoneycomb = async (req,res) => {
 
 	if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません' });
@@ -407,15 +369,4 @@ exports.updateHoney = async (req,res) => {
 		console.error(error);
 		res.status(500).json({ error : 'Internal Server Error'});
 	}
-}
-
-
-function checkJwtToken(token){
-    try {
-        const verify = jwt.verify(token, 'beemee');
-        return verify;
-    } catch (error) {
-        console.error(error);
-        return false;
-    }
 }
