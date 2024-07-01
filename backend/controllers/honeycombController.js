@@ -172,57 +172,53 @@ exports.getHoneycomb = async (req,res) => {
  */
 exports.createHoneycomb = async (req,res) => {
 
-	if(!req.session.beeId) return res.state(401).json({ error : 'セッションIDが存在していません'});
+    try {
 
-	upload.fields([{name : 'HoneycombMedia', maxCount : 4}])(req,res, async function(err){
-		
-		if(err) {
-			console.error(err);
-			return res.status(500).json({ error : 'Internal Server Error '});
-		}
+        await new Promise((resolve, reject) => {
+            upload.fields([
+                { name : 'HoneycombMedia', maxCount : 4}
+            ])(req,res,(err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
 
-		try {
+        const title = req.body.title;
+        const posts = req.body.posts;
+        const beeId = req.bee.beeId;
+        const beehiveId = req.params.beehiveId;
 
-			const title = req.body.title;
-			const posts = req.body.posts;
-			const beeId = req.session.beeId;
-			const beehiveId = req.params.beehiveId;
+        const bee = await Bees.findOne({ beeId : beeId }, 'beeId _id');
+        const beehive = await Beehives.findOne({ beehiveId : beehiveId }, 'beehiveId joinedBee _id');
 
-			const bee = await Bees.findOne({ beeId : beeId}, 'beeId _id');
-			const beehive = await Beehives.findOne({ beehiveId : beehiveId }, 'beehiveId joinedBee _id');
+        if(!bee || !beehive) return res.status(404).json({ message : 'Not Found'});
 
-			//
-			if(!bee || !beehive) return res.status(404).json({ error : 'Not Found'});
+        //Beehiveのユーザでなければ作成できない
+        if(!beehive.joinedBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveには参加していません'});
 
-			//Beehiveのユーザでなければ作成できない
-			if(!beehive.joinedBee.includes(bee._id)) return res.status(403).json({ error : 'あなたはこのBeehiveには参加していません'});
+        //画像、動画データの格納及び保存
+        let mediaNames = [];
 
-			//画像、動画データの格納及び保存
-			let mediaNames = [];
+        if(req.files.HoneycombMedia && req.files.HoneycombMedia.length > 0) {
+            req.files.HoneycombMedia.forEach(file => {
+                mediaNames.push(file.filename);
+            });
+        }
 
-			if(req.files.HoneycombMedia) {
-				req.files.HoneycombMedia.forEach(file => {
-					mediaNames.push(file.filename);
-				});
-			}
+        const honeycomb = await Honeycombs.create({
+            _beeId : bee._id,
+            _beehiveId: beehive._id,
+            title : title,
+            posts : posts,
+            media : mediaNames,
+        });
 
-			const honeycomb = new Honeycombs({
-				_beeId : bee._id,
-				_beehiveId: beehive._id,
-				title : title,
-				posts : posts,
-				media : mediaNames,
-			});
+        res.status(201).json(honeycomb);
 
-			await honeycomb.save();
-
-			res.status(201).json(honeycomb);
-
-		} catch (error) {
-			console.error(error);
-			return res.status(500).json({ error : 'Internal Server Error'});
-		}
-	});
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message : 'Internal Server Error', error : err });
+    }
 }
 
 /**
@@ -231,8 +227,7 @@ exports.createHoneycomb = async (req,res) => {
  * @param {*} res 
  */
 exports.updateHoneycomb = async (req,res) => {
-	if(!req.session.beeId) return res.status(401).json({ error : 'セッションIDが存在していません'});
-
+    
 	upload.fields([{name : 'HoneycombMedia',maxCount : 4}])(req,res, async function(error){
 		try {
 			const beeId = req.session.beeId;

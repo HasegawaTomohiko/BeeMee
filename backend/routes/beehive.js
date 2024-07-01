@@ -2,7 +2,7 @@ var router = require("express").Router();
 const beehiveController = require("../controllers/beehiveController");
 const honeycombController = require("../controllers/honeycombController");
 const replyController = require("../controllers/replyController");
-const { authenticateJwt, authenticateLocal } = require("../middlewares/passport");
+const { authenticateJwt, troughtJwt, authenticateLocal } = require("../middlewares/passport");
 
 //新規のBeehiveを作成
 router.post("/", authenticateJwt, beehiveController.createBeehive);

@@ -5,42 +5,45 @@ const Bees = require("../models/bee");
 const BeeAuth = require("../models/beeAuth");
 const upload = require("../middlewares/multer");
 
+///////////////////////要再//////////////////////////////
 exports.getBee = async (req,res) => {
 	try { 
 
-		const bee = await Bees.findOne({ beeId : req.params.beeId },'_id beeId beeName description location customUrl beeIcon beeHeader followCount followerCount joinBeehiveCount sendHoneyCount');
-		if (!bee) return res.status(404).json({ message : 'Bee not found'});
+        const bee = await Bees.findOne({ beeId: req.params.beeId }, '_id beeId beeName description location customUrl beeIcon beeHeader followCount followerCount joinBeehiveCount sendHoneyCount');
 
-		res.status(200).json(bee);
+        if (!bee) return res.status(404).json({ message : 'Bee Not Found' });
 
+        let isBlocked = false;
+
+        if (req.bee) {
+            const blockList = await Bees.findOne({ beeId : req.bee.beeId },'block');
+            isBlocked = blockList.includes(bee._id);
+        }
+
+        res.status(200).json(bee,isBlocked);
+        
 	} catch (err) {
 		console.log(err);
 		res.status(500).json({ message : 'Internal Server Error ', error : err });
 	}
 }
 
+///////////////////////要再//////////////////////////////
 exports.searchBee = async (req,res) => {
 	try {
 		const searchQuery = req.query.q;
 		const limit = parseInt(req.query.limit) || 30;
-		const skip = parseInt(req.query.skip) || 0;
+        const page = parseInt(req.query.page) || 1;
+        const skip = (page - 1) * limit;
 
-		let bees;
+		let search = { beeName : { $regex : searchQuery, $options : 'i' }};
 
-		if(searchQuery[0] === '@'){
-			const beeId = searchQuery.slice(1);
-			bees = await Bees.find({
-				beeId : { $regex : beeId, $options: 'i'}
-			})
-			.limit(limit)
-			.skip(skip);
-		}else{
-			bees = await Bees.find({
-				beeName: { $regex : searchQuery, $options: 'i'}
-			})
-			.limit(limit)
-			.skip(skip);
-		}
+        if (searchQuery.startsWith('@')) {
+            const beeId = searchQuery.slice(1);
+            search = { beeId : { $regex : beeId, $options : 'i' }};
+        }
+
+        const bees = await Bees.find(search).limit(limit).skip(skip);
 
 		res.status(200).json(bees);
 
@@ -154,6 +157,7 @@ exports.updateBee = async (req,res) => {
 	}
 }
 
+///////////////////////要再//////////////////////////////
 exports.deleteBee = async (req,res) => {
 	const beeid = req.params.beeid;
 	res.send("delete Bee! : " + beeid);
